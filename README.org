@@ -1,0 +1,9 @@
+#+TITLE: LameCode
+#+AUTHOR: Omar Flores
+#+EMAIL: omar533330@gmail.com
+
+
+* TLDR
+Very basic clone of LeetCode that runs from a single Go binary, and
+hosts data in Turso. The full stack is Go-Gin-Turso-HTMX, chosen for
+funsies and to completely avoid using a frontend framework.
