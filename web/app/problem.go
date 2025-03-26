@@ -8,6 +8,7 @@ import (
 )
 
 func LoadProblemHandlers(r *gin.Engine) {
+	r.GET("/", problemFunc)
 	r.GET("/problems/:id", problemFunc)
 }
 
