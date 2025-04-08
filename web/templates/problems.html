@@ -1,0 +1,55 @@
+{{ define "challengeList" }}
+<div>
+  <ul>
+    {{- range .Challenges }}
+      <li>
+        <h2>{{ .Title }}</h2>
+        <p>{{ .Description }}</p>
+        <p><em>Difficulty: {{ .Difficulty }}</em></p>
+      </li>
+    {{- else }}
+      <li>No challenges available.</li>
+    {{- end }}
+  </ul>
+
+  <div class="pagination">
+    {{- if .HasPrev }}
+      <button hx-get="/problemlist?page={{ .PrevPage }}" hx-target="#challenge-list" hx-swap="outerHTML">
+        Previous
+      </button>
+    {{- end }}
+    {{- if .HasNext }}
+      <button hx-get="/problemlist?page={{ .NextPage }}" hx-target="#challenge-list" hx-swap="outerHTML">
+        Next
+      </button>
+    {{- end }}
+  </div>
+</div>
+{{ end }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Challenges</title>
+  <!-- Include HTMX from CDN -->
+  <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+  <style>
+    /* Basic styling for clarity */
+    body { font-family: sans-serif; margin: 20px; }
+    .pagination button { margin: 5px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>All Challenges</h1>
+    <!-- 
+         The container #challenge-list is loaded via HTMX.
+         When the page loads, HTMX makes a GET request to "/problemlist?page=1"
+         and then replaces the innerHTML with the response.
+    -->
+    <div id="challenge-list" hx-get="/problemlist?page=1" hx-trigger="load" hx-swap="innerHTML">
+      <!-- The challenge list will be injected here -->
+    </div>
+  </div>
+</body>
+</html>

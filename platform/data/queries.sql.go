@@ -7,7 +7,290 @@ package data
 
 import (
 	"context"
+	"database/sql"
 )
+
+const countChallenges = `-- name: CountChallenges :one
+SELECT COUNT(*) AS count FROM challenges
+`
+
+func (q *Queries) CountChallenges(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countChallenges)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const getChallenge = `-- name: GetChallenge :one
+SELECT id, title, description, difficulty, created_at, updated_at FROM challenges
+WHERE id = ?
+`
+
+func (q *Queries) GetChallenge(ctx context.Context, id int64) (Challenge, error) {
+	row := q.db.QueryRowContext(ctx, getChallenge, id)
+	var i Challenge
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.Difficulty,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getChallenges = `-- name: GetChallenges :many
+SELECT id, title, description, difficulty, created_at, updated_at FROM challenges
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetChallenges(ctx context.Context) ([]Challenge, error) {
+	rows, err := q.db.QueryContext(ctx, getChallenges)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Challenge
+	for rows.Next() {
+		var i Challenge
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.Difficulty,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getChallengesPaginated = `-- name: GetChallengesPaginated :many
+SELECT id, title, description, difficulty, created_at, updated_at FROM challenges 
+ORDER BY created_at DESC 
+LIMIT ? OFFSET ?
+`
+
+func (q *Queries) GetChallengesPaginated(ctx context.Context, limit int64, offset int64) ([]Challenge, error) {
+	rows, err := q.db.QueryContext(ctx, getChallengesPaginated, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Challenge
+	for rows.Next() {
+		var i Challenge
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.Difficulty,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCompletedChallengesForUser = `-- name: GetCompletedChallengesForUser :many
+SELECT user_id, challenge_id, completed_at, best_solution_id FROM user_completed_challenges
+WHERE user_id = ?
+ORDER BY completed_at DESC
+`
+
+func (q *Queries) GetCompletedChallengesForUser(ctx context.Context, userID int64) ([]UserCompletedChallenge, error) {
+	rows, err := q.db.QueryContext(ctx, getCompletedChallengesForUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserCompletedChallenge
+	for rows.Next() {
+		var i UserCompletedChallenge
+		if err := rows.Scan(
+			&i.UserID,
+			&i.ChallengeID,
+			&i.CompletedAt,
+			&i.BestSolutionID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSolutionsForChallenge = `-- name: GetSolutionsForChallenge :many
+SELECT id, user_id, challenge_id, code, language, status, runtime_info, created_at FROM solutions
+WHERE challenge_id = ?
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetSolutionsForChallenge(ctx context.Context, challengeID int64) ([]Solution, error) {
+	rows, err := q.db.QueryContext(ctx, getSolutionsForChallenge, challengeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Solution
+	for rows.Next() {
+		var i Solution
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.ChallengeID,
+			&i.Code,
+			&i.Language,
+			&i.Status,
+			&i.RuntimeInfo,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getTestsForChallenge = `-- name: GetTestsForChallenge :many
+SELECT id, challenge_id, input_data, expected_output, created_at FROM challenge_tests
+WHERE challenge_id = ?
+ORDER BY id
+`
+
+func (q *Queries) GetTestsForChallenge(ctx context.Context, challengeID int64) ([]ChallengeTest, error) {
+	rows, err := q.db.QueryContext(ctx, getTestsForChallenge, challengeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ChallengeTest
+	for rows.Next() {
+		var i ChallengeTest
+		if err := rows.Scan(
+			&i.ID,
+			&i.ChallengeID,
+			&i.InputData,
+			&i.ExpectedOutput,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getUserById = `-- name: GetUserById :one
+SELECT id, username, password, created_at, updated_at FROM users
+WHERE id = ?
+`
+
+func (q *Queries) GetUserById(ctx context.Context, id int64) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserById, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getUserByName = `-- name: GetUserByName :one
+SELECT id, username, password, created_at, updated_at FROM users
+WHERE username = ?
+`
+
+func (q *Queries) GetUserByName(ctx context.Context, username string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByName, username)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getUserSolutions = `-- name: GetUserSolutions :many
+SELECT id, user_id, challenge_id, code, language, status, runtime_info, created_at FROM solutions
+WHERE user_id = ? AND challenge_id = ?
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetUserSolutions(ctx context.Context, userID int64, challengeID int64) ([]Solution, error) {
+	rows, err := q.db.QueryContext(ctx, getUserSolutions, userID, challengeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Solution
+	for rows.Next() {
+		var i Solution
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.ChallengeID,
+			&i.Code,
+			&i.Language,
+			&i.Status,
+			&i.RuntimeInfo,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
 
 const getUsers = `-- name: GetUsers :many
 SELECT id, username, password, created_at, updated_at FROM users ORDER BY username
@@ -42,25 +325,94 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 	return items, nil
 }
 
-const newUser = `-- name: NewUser :one
-
-INSERT INTO users (username, password) VALUES (?, ?) RETURNING id
+const newChallenge = `-- name: NewChallenge :one
+INSERT INTO challenges (title, description, difficulty)
+VALUES (?, ?, ?)
+RETURNING id
 `
 
-type NewUserParams struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-// -- name: UpdateUserEmail :one
-// UPDATE users SET
-// email = sqlc.arg(email), updated_at = unixepoch()
-// WHERE id = sqlc.arg(userId) RETURNING *;
-func (q *Queries) NewUser(ctx context.Context, arg NewUserParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, newUser, arg.Username, arg.Password)
+func (q *Queries) NewChallenge(ctx context.Context, title string, description string, difficulty int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, newChallenge, title, description, difficulty)
 	var id int64
 	err := row.Scan(&id)
 	return id, err
+}
+
+const newChallengeTest = `-- name: NewChallengeTest :one
+INSERT INTO challenge_tests (challenge_id, input_data, expected_output)
+VALUES (?, ?, ?)
+RETURNING id
+`
+
+func (q *Queries) NewChallengeTest(ctx context.Context, challengeID int64, inputData string, expectedOutput string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, newChallengeTest, challengeID, inputData, expectedOutput)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const newSolution = `-- name: NewSolution :one
+INSERT INTO solutions (user_id, challenge_id, code, language, status, runtime_info)
+VALUES (?, ?, ?, ?, ?, ?)
+RETURNING id
+`
+
+type NewSolutionParams struct {
+	UserID      int64          `json:"user_id"`
+	ChallengeID int64          `json:"challenge_id"`
+	Code        string         `json:"code"`
+	Language    string         `json:"language"`
+	Status      string         `json:"status"`
+	RuntimeInfo sql.NullString `json:"runtime_info"`
+}
+
+func (q *Queries) NewSolution(ctx context.Context, arg NewSolutionParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, newSolution,
+		arg.UserID,
+		arg.ChallengeID,
+		arg.Code,
+		arg.Language,
+		arg.Status,
+		arg.RuntimeInfo,
+	)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const newUser = `-- name: NewUser :one
+INSERT INTO users (username, password) VALUES (?, ?) RETURNING id
+`
+
+func (q *Queries) NewUser(ctx context.Context, username string, password string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, newUser, username, password)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const updateSolutionStatus = `-- name: UpdateSolutionStatus :one
+UPDATE solutions
+SET status = ?1,
+    runtime_info = ?2
+WHERE id = ?3
+RETURNING id, user_id, challenge_id, code, language, status, runtime_info, created_at
+`
+
+func (q *Queries) UpdateSolutionStatus(ctx context.Context, newstatus string, runtimeinfo sql.NullString, solutionid int64) (Solution, error) {
+	row := q.db.QueryRowContext(ctx, updateSolutionStatus, newstatus, runtimeinfo, solutionid)
+	var i Solution
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.ChallengeID,
+		&i.Code,
+		&i.Language,
+		&i.Status,
+		&i.RuntimeInfo,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
 const updateUserPassword = `-- name: UpdateUserPassword :one
@@ -69,13 +421,8 @@ password = ?1, updated_at = unixepoch()
 WHERE id = ?2 RETURNING id, username, password, created_at, updated_at
 `
 
-type UpdateUserPasswordParams struct {
-	Newpassword string `json:"newpassword"`
-	Userid      int64  `json:"userid"`
-}
-
-func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, updateUserPassword, arg.Newpassword, arg.Userid)
+func (q *Queries) UpdateUserPassword(ctx context.Context, newpassword string, userid int64) (User, error) {
+	row := q.db.QueryRowContext(ctx, updateUserPassword, newpassword, userid)
 	var i User
 	err := row.Scan(
 		&i.ID,

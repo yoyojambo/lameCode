@@ -9,12 +9,12 @@ import (
 )
 
 type Challenge struct {
-	ID          int64         `json:"id"`
-	Title       string        `json:"title"`
-	Description string        `json:"description"`
-	Difficulty  sql.NullInt64 `json:"difficulty"`
-	CreatedAt   int64         `json:"created_at"`
-	UpdatedAt   int64         `json:"updated_at"`
+	ID          int64  `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Difficulty  int64  `json:"difficulty"`
+	CreatedAt   int64  `json:"created_at"`
+	UpdatedAt   int64  `json:"updated_at"`
 }
 
 type ChallengeTest struct {

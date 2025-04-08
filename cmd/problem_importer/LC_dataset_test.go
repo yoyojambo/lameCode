@@ -1,4 +1,4 @@
-package data
+package main
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ func init() {
 		panic(err)
 	}
 
-	traversal := "../../testdata/data"
+	traversal := "../testdata/data"
 	err = os.Chdir(path.Join(cur, traversal))
 	if err != nil {
 		panic(err)

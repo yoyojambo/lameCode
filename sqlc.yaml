@@ -8,3 +8,4 @@ sql:
        package: "data"
        out: "platform/data"
        emit_json_tags: true
+       query_parameter_limit: 3

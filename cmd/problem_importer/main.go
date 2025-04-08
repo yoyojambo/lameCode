@@ -5,34 +5,62 @@ import (
 	"fmt"
 	"os"
 
+	"flag"
 	"lameCode/platform/data"
 	"log"
-	"flag"
 
+	"context"
 	_ "modernc.org/sqlite"
 )
 
 var dry_run = flag.Bool("dry-run", false, "Parse and load in a in-memory ephemeral database the file.")
 
 func run() error {
-	if len(os.Args) == 1 {
-		return fmt.Errorf("No csv file given to read")
+	ctx := context.Background()
+	if flag.NArg() < 2 {
+		return fmt.Errorf(
+			"Not enough arguments, expected csv file and database file",
+		)
 	}
 
-	
-
-	if len(os.Args) > 3 {
+	if flag.NArg() > 2 {
 		return fmt.Errorf("Too many arguments")
 	}
 
-	db, err := sql.Open("sqlite", ":memory:")
+	// File names
+	csv_fname, db_fname := flag.Arg(0), flag.Arg(1)
+
+	db, err := sql.Open("sqlite", db_fname)
 	if err != nil {
 		return err
 	}
 
-	db.Ping()
+	defer db.Close()
 
-	fmt.Println(os.Args[1])
+	r, err := os.Open(csv_fname)
+	if err != nil {
+		return err
+	}
+
+	tx, err := db.Begin()
+	q := data.New(db).WithTx(tx)
+
+	problems := ParseProblemsFromReader(r)
+
+	for i, p := range problems {
+		if i < 10 {
+			log.Printf("Challenge #%d:\n  TITLE: %s\n  DESC: %s\n  DIFF: %d",
+				i+1, p.Title, p.Description[:20], p.Difficulty)
+		}
+		_, err := q.NewChallenge(ctx, p.Title, p.Description, int64(p.Difficulty))
+		if err != nil {
+			return err
+		}
+	}
+
+	tx.Commit()
+
+	fmt.Println("Inserted ", len(problems), " problems")
 
 	return nil
 }

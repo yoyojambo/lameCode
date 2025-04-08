@@ -3,7 +3,7 @@
 // Parses it in objects to more easily import them at-will to the
 // database, if it has no problem set at that time.
 
-package data
+package main
 
 import (
 	"encoding/csv"
@@ -13,12 +13,12 @@ import (
 	"strings"
 )
 
-type Problem struct {
+type CsvProblem struct {
 	Id                 int
 	Title              string
 	Description        string
 	Is_premium         bool
-	Difficulty         int // Easy = 0, Medium = 1, Hard = 2
+	Difficulty         int // Easy = 1, Medium = 2, Hard = 3
 	Solution_link      string
 	Acceptance_rate_th int // as 1/1000, so 1000 is 100%, and 573 is 57.3%
 	Frequency          int // as 1/1000, so 1000 is 100%, and 573 is 57.3%
@@ -45,7 +45,7 @@ func strColumn(newLine bool, name, text string) string {
 	return str
 }
 
-func (p *Problem) String() string {
+func (p *CsvProblem) String() string {
 	str := "Problem " + strconv.Itoa(p.Id)
 
 	str += strColumn(true, "Title", p.Title)
@@ -71,8 +71,8 @@ func (p *Problem) String() string {
 	return str
 }
 
-func parseProblems(rows [][]string) []Problem {
-	problems := make([]Problem, 0, len(rows))
+func parseProblems(rows [][]string) []CsvProblem {
+	problems := make([]CsvProblem, 0, len(rows))
 
 	for _, row := range rows {
 		if len(row) < 19 {
@@ -82,7 +82,18 @@ func parseProblems(rows [][]string) []Problem {
 
 		id, _ := strconv.Atoi(row[0])
 		isPremium, _ := strconv.ParseBool(row[3])
-		difficulty, _ := strconv.Atoi(row[4])
+		difficulty_str := row[4]
+		difficulty := 0
+		if difficulty_str == "Easy" {
+			difficulty = 1
+		} else if difficulty_str == "Medium" {
+			difficulty = 2
+		} else if difficulty_str == "Hard" {
+			difficulty = 3
+		} else {
+			panic("Got " + difficulty_str + " where one from [Easy, Medium, Hard] expected")
+		}
+
 		acceptanceRate, _ := strconv.Atoi(row[6])
 		frequency, _ := strconv.Atoi(row[7])
 		discussCount, _ := strconv.Atoi(row[9])
@@ -104,7 +115,7 @@ func parseProblems(rows [][]string) []Problem {
 			similar = append(similar, match[1]) // e.g., "3Sum, /problems/3sum/, Medium"
 		}
 
-		problem := Problem{
+		problem := CsvProblem{
 			Id:                 id,
 			Title:              row[1],
 			Description:        row[2],
@@ -134,7 +145,7 @@ func parseProblems(rows [][]string) []Problem {
 
 // Expects a csv file like the one in
 // https://www.kaggle.com/datasets/gzipchrist/leetcode-problem-dataset
-func ParseProblemsFromReader(r io.Reader) []Problem {
+func ParseProblemsFromReader(r io.Reader) []CsvProblem {
 	csv_r := csv.NewReader(r)
 
 	values, err := csv_r.ReadAll()
