@@ -1,12 +1,17 @@
 package app
 
 import (
+	"html/template"
 	"lameCode/platform/data"
 	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	
+	"github.com/gomarkdown/markdown"
+	"github.com/gomarkdown/markdown/html"
+	"github.com/gomarkdown/markdown/parser"
 )
 
 func LoadProblemHandlers(r *gin.Engine) {
@@ -15,6 +20,7 @@ func LoadProblemHandlers(r *gin.Engine) {
 	r.GET("/problem/:id", problemFunc)
 }
 
+// Local representation of a challenge
 // User has only information necessary to display on pages
 type User struct {
 	LoggedIn bool
@@ -22,14 +28,6 @@ type User struct {
 	Avatar   string // or empty if none
 }
 
-type ChallengePage struct {
-	Challenges  []data.Challenge `json:"challenges"`
-	HasPrev     bool             `json:"has_prev"`
-	HasNext     bool             `json:"has_next"`
-	PrevPage    int64            `json:"prev_page"`
-	NextPage    int64            `json:"next_page"`
-	CurrentPage int64            `json:"current_page"`
-}
 
 func fromUser(user data.User) User {
 	return User{
@@ -46,6 +44,50 @@ func fromUsername(ctx *gin.Context, username string) User {
 	}
 
 	return fromUser(user)
+}
+
+// Information for a list of challenges, from a paged request
+type ChallengePage struct {
+	Challenges  []data.Challenge `json:"challenges"`
+	HasPrev     bool             `json:"has_prev"`
+	HasNext     bool             `json:"has_next"`
+	PrevPage    int64            `json:"prev_page"`
+	NextPage    int64            `json:"next_page"`
+	CurrentPage int64            `json:"current_page"`
+}
+
+// Local representation of a challenge.
+// Necessary so Gin renders the HTML description correctly.
+type Challenge struct {
+	Title string
+	Difficulty int64
+	Description template.HTML
+}
+
+// Straight up from https://github.com/gomarkdown/markdown
+// Thanks for the library.
+func mdToHTML(md string) string {
+	md_bs := []byte(md)
+	// create markdown parser with extensions
+	extensions := parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock
+	p := parser.NewWithExtensions(extensions)
+	doc := p.Parse(md_bs)
+
+	// create HTML renderer with extensions
+	htmlFlags := html.CommonFlags | html.HrefTargetBlank
+	opts := html.RendererOptions{Flags: htmlFlags}
+	renderer := html.NewRenderer(opts)
+
+	return string(markdown.Render(doc, renderer))
+}
+
+func fromChallenge(challenge data.Challenge) Challenge {
+	return Challenge{
+		Title: challenge.Title,
+		                           // Essentially a cast :/
+		Description: template.HTML(mdToHTML(challenge.Description)),
+		Difficulty: challenge.Difficulty,
+	}
 }
 
 func problemFunc(ctx *gin.Context) {
@@ -65,7 +107,8 @@ func problemFunc(ctx *gin.Context) {
 			LoggedIn: false,
 		},
 
-		"Problem": p,
+		// fromChallenge creates an object with the unescaped Descrtiption
+		"Problem": fromChallenge(p),
 	}
 	ctx.HTML(http.StatusOK, "problem.html", data)
 }
