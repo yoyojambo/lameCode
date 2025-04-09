@@ -2,13 +2,14 @@ package app
 
 import (
 	"html/template"
+	"lameCode/platform/config"
 	"lameCode/platform/data"
 	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	
+
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/html"
 	"github.com/gomarkdown/markdown/parser"
@@ -132,7 +133,9 @@ func problemsSetPageFunc(ctx *gin.Context) {
 
 	// Query the paginated challenges.
 	challenges, err := repo.GetChallengesPaginated(ctx, pageSize, offset)
-	log.Printf("Problems:\n  PAGE: %d\n  OFFSET: %d\n", page, offset)
+	if config.Debug() {
+		log.Printf("Problems:\n  PAGE: %d\n  OFFSET: %d\n", page, offset)
+	}
 	if err != nil {
 		log.Printf("error fetching paginated challenges: %v", err)
 		ctx.String(http.StatusInternalServerError, "Internal server error")

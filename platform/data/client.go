@@ -11,12 +11,12 @@ import (
 
 // Creates database connection based on application configuration
 var loadDB = sync.OnceValue(func () *sql.DB {
-	db, err := sql.Open("sqlite", *config.DbFile)
+	db, err := sql.Open("sqlite", config.DbFile())
 	if err != nil {
 		panic(err)
 	}
 
-	log.Println("[data/client] Initialized SQL conn to", *config.DbFile)
+	log.Println("[data/client] Initialized SQL conn to", config.DbFile())
 
 	return db
 })
