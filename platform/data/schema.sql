@@ -1,6 +1,6 @@
 -- Table: Users
 CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
     created_at INTEGER NOT NULL DEFAULT (unixepoch()),
@@ -9,7 +9,7 @@ CREATE TABLE users (
 
 -- Table: Challenges
 CREATE TABLE challenges (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY,
     title TEXT NOT NULL,
     description TEXT NOT NULL,
     difficulty INTEGER NOT NULL CHECK(difficulty BETWEEN 1 AND 3),
@@ -19,7 +19,7 @@ CREATE TABLE challenges (
 
 -- Table: Challenge_Tests
 CREATE TABLE challenge_tests (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY,
     challenge_id INTEGER NOT NULL,
     input_data TEXT NOT NULL,
     expected_output TEXT NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE challenge_tests (
 
 -- Table: Solutions (Submissions)
 CREATE TABLE solutions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY,
     user_id INTEGER NOT NULL,
     challenge_id INTEGER NOT NULL,
     code TEXT NOT NULL,
