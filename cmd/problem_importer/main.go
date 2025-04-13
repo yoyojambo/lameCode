@@ -42,8 +42,7 @@ func run() error {
 		return err
 	}
 
-	tx, err := db.Begin()
-	q := data.New(db).WithTx(tx)
+	q := data.New(db)
 
 	problems := ParseProblemsFromReader(r)
 
@@ -58,8 +57,6 @@ func run() error {
 		}
 	}
 
-	tx.Commit()
-
 	fmt.Println("Inserted ", len(problems), " problems")
 
 	return nil
@@ -70,6 +67,4 @@ func main() {
 	if err := run(); err != nil {
 		log.Fatal(err)
 	}
-
-	data.DB().Ping()
 }

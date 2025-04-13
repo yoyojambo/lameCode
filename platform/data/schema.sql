@@ -12,7 +12,7 @@ CREATE TABLE challenges (
     id INTEGER PRIMARY KEY,
     title TEXT NOT NULL,
     description TEXT NOT NULL,
-    difficulty INTEGER NOT NULL CHECK(difficulty BETWEEN 1 AND 3),
+    difficulty INTEGER NOT NULL CHECK(difficulty BETWEEN 0 AND 3),
     created_at INTEGER NOT NULL DEFAULT (unixepoch()),
     updated_at INTEGER NOT NULL DEFAULT (unixepoch())
 );
