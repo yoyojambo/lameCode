@@ -1,3 +1,4 @@
 /.env
 *.db
 /testdata/hackerearth/
+/testdata/description2code
