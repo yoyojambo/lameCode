@@ -128,7 +128,7 @@ func problemsSetPageFunc(ctx *gin.Context) {
 		page = 1
 	}
 
-	const pageSize = 10
+	const pageSize = 30
 	offset := (page - 1) * pageSize
 
 	// Query the paginated challenges.

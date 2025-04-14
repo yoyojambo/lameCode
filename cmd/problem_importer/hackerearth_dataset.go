@@ -78,7 +78,7 @@ func walkParser(c chan challenge) filepath.WalkFunc {
 					ch = &challenge{Name: ch_name, Tests: make(map[int]test)}
 				}
 
-				ch.Name = string(content)
+				ch.Description = string(content)
 			}
 			// TODO: if there is no description.txt but a
 			// description_annotated.txt is found, use that.
@@ -106,8 +106,6 @@ func walkParser(c chan challenge) filepath.WalkFunc {
 			// TODO: Add this solutions as an example user?
 			// (as an opt-in option)
 			return filepath.SkipDir
-		default:
-			return filepath.SkipDir
 		}
 
 		return nil
@@ -116,14 +114,19 @@ func walkParser(c chan challenge) filepath.WalkFunc {
 
 func import_Description2Code(path string, q *data.Queries) error {
 	c := make(chan challenge, 3)
-	defer close(c)
 
 	// Initialize receiver
 	go func() {
+		i := 0
 		for ch := range c {
 			err := insertEntry(ch, q)
 			if err != nil {
 				log.Fatalln("Async insertEntry error:", err)
+			}
+			i += 1
+			if i == 1 && i % 100 == 0 {
+				log.Println("Imported challenge", ch.Name)
+				log.Println(i, "problems imported...")
 			}
 		}
 	}()
