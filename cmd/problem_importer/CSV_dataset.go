@@ -145,7 +145,7 @@ func parseProblems(rows [][]string) []CsvProblem {
 
 // Expects a csv file like the one in
 // https://www.kaggle.com/datasets/gzipchrist/leetcode-problem-dataset
-func ParseProblemsFromReader(r io.Reader) []CsvProblem {
+func import_CsvDataset(r io.Reader) []CsvProblem {
 	csv_r := csv.NewReader(r)
 
 	values, err := csv_r.ReadAll()

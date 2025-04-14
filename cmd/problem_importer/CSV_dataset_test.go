@@ -13,13 +13,16 @@ func init() {
 		panic(err)
 	}
 
-	traversal := "../testdata/data"
+	// Kinda fragile, to be honest.
+	// Probably should do something like
+	// https://stackoverflow.com/a/29541248
+	traversal := "../../testdata"
 	err = os.Chdir(path.Join(cur, traversal))
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Printf("[LC_dataset] Changed CWD from %s to %s", cur, path.Clean(path.Join(cur, traversal)))
+	fmt.Printf("[CSV_dataset] Changed CWD from %s to %s", cur, path.Clean(path.Join(cur, traversal)))
 }
 
 func TestCsvParsing(t *testing.T) {
@@ -28,7 +31,7 @@ func TestCsvParsing(t *testing.T) {
 		panic(err)
 	}
 	// The actual test
-	problems := ParseProblemsFromReader(f)
+	problems := import_CsvDataset(f)
 
 	for i := 0; i < 10; i++ {
 		fmt.Println(problems[i].String())
