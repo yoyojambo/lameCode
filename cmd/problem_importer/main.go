@@ -1,25 +1,23 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
-	"os"
+	"log"
 
 	"flag"
 	"lameCode/platform/data"
-	"log"
 
-	"context"
+	"database/sql"
 	_ "modernc.org/sqlite"
 )
 
 var dry_run = flag.Bool("dry-run", false, "Parse and load in a in-memory ephemeral database the file.")
+
 var desc2code = flag.Bool("description2code", true, "Parse a folder with the structure of the description2code dataset")
 
 var create_db = flag.Bool("create", false, "Load schema on database upon connection. Will show and error if schema was already present")
 
 func run() error {
-	ctx := context.Background()
 	if !*dry_run && flag.NArg() < 2 || flag.NArg() < 1 {
 		return fmt.Errorf(
 			"Not enough arguments, expected csv file and database file (unless using --dry-run)",
@@ -36,7 +34,7 @@ func run() error {
 	if !*dry_run {
 		db_fname = flag.Arg(1)
 	}
-	
+
 	db, err := sql.Open("sqlite", db_fname)
 	if err != nil {
 		return err
@@ -51,34 +49,19 @@ func run() error {
 			log.Println("Ignoring error, assuming schema already existed...\n", err)
 		}
 	}
-	
+
 	q := data.New(db)
 
-	defer db.Close()
 	if *desc2code {
 		err := import_Description2Code(target_fname, q)
 		if err != nil {
 			return err
 		}
 	} else {
-		r, err := os.Open(target_fname)
+		err := import_CsvDataset(target_fname, q)
 		if err != nil {
 			return err
 		}
-
-		problems := import_CsvDataset(r)
-
-		for i, p := range problems {
-			if i < 10 {
-				log.Printf("Challenge #%d:\n  TITLE: %s\n  DESC: %s\n  DIFF: %d\n",
-					i+1, p.Title, p.Description[:20], p.Difficulty)
-			}
-			_, err := q.NewChallenge(ctx, p.Title, p.Description, int64(p.Difficulty))
-			if err != nil {
-				return err
-			}
-		}
-		fmt.Println("Inserted ", len(problems), " problems")
 	}
 
 	return nil
@@ -88,10 +71,13 @@ func main() {
 	flag.Parse()
 	if *dry_run {
 		log.Printf("Running a dry-run on %s\n", flag.Arg(0))
+	} else {
+		log.Printf("Importing dataset to %s\n", flag.Arg(1))
 	}
+	
 	if err := run(); err != nil {
 		log.Fatalln(err)
 	}
 
-	log.Println("Imported succesfully")
+	log.Println("Problems imported succesfully")
 }

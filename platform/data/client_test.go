@@ -12,7 +12,7 @@ func TestSchemaStatements(t *testing.T) {
 	statements := GetSchemaStatements()
 
 	for i, s := range statements {
-		t.Logf("[%d] %s\n", i, s)
+		t.Logf("[%d] \n%s\n", i, s)
 	}
 }
 

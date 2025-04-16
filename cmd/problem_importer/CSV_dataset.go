@@ -7,10 +7,14 @@ package main
 
 import (
 	"encoding/csv"
-	"io"
+	"fmt"
+	"lameCode/platform/data"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"golang.org/x/net/context"
 )
 
 type CsvProblem struct {
@@ -18,7 +22,7 @@ type CsvProblem struct {
 	Title              string
 	Description        string
 	Is_premium         bool
-	Difficulty         int // Easy = 1, Medium = 2, Hard = 3
+	Difficulty         int64 // Easy = 1, Medium = 2, Hard = 3
 	Solution_link      string
 	Acceptance_rate_th int // as 1/1000, so 1000 is 100%, and 573 is 57.3%
 	Frequency          int // as 1/1000, so 1000 is 100%, and 573 is 57.3%
@@ -83,7 +87,7 @@ func parseProblems(rows [][]string) []CsvProblem {
 		id, _ := strconv.Atoi(row[0])
 		isPremium, _ := strconv.ParseBool(row[3])
 		difficulty_str := row[4]
-		difficulty := 0
+		difficulty := int64(0)
 		if difficulty_str == "Easy" {
 			difficulty = 1
 		} else if difficulty_str == "Medium" {
@@ -145,15 +149,33 @@ func parseProblems(rows [][]string) []CsvProblem {
 
 // Expects a csv file like the one in
 // https://www.kaggle.com/datasets/gzipchrist/leetcode-problem-dataset
-func import_CsvDataset(r io.Reader) []CsvProblem {
-	csv_r := csv.NewReader(r)
+func import_CsvDataset(filename string, queries *data.Queries) error {
+	f, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	csv_r := csv.NewReader(f)
 
 	values, err := csv_r.ReadAll()
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	problems := parseProblems(values[1:])
+	ctx := context.Background()
 
-	return problems
+	for i := range problems {
+		_, err := queries.NewChallenge(
+			ctx,
+			problems[i].Title,
+			problems[i].Description,
+			int64(problems[i].Difficulty),
+		)
+		if err != nil {
+			return err
+		}
+	}
+	fmt.Println("Inserted ", len(problems), " problems")
+
+	return nil
 }

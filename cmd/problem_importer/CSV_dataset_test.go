@@ -1,39 +1,31 @@
 package main
 
 import (
-	"fmt"
+	"encoding/csv"
 	"os"
-	"path"
 	"testing"
 )
 
-func init() {
-	cur, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-
-	// Kinda fragile, to be honest.
-	// Probably should do something like
-	// https://stackoverflow.com/a/29541248
-	traversal := "../../testdata"
-	err = os.Chdir(path.Join(cur, traversal))
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Printf("[CSV_dataset] Changed CWD from %s to %s", cur, path.Clean(path.Join(cur, traversal)))
-}
-
 func TestCsvParsing(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping CSV parsing test in short mode")
+	}
+
 	f, err := os.Open("leetcode_dataset.csv")
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
-	// The actual test
-	problems := import_CsvDataset(f)
+	csv_r := csv.NewReader(f)
+
+	values, err := csv_r.ReadAll()
+	if err != nil {
+		t.Error(err)
+	}
+
+	problems := parseProblems(values[1:])
 
 	for i := 0; i < 10; i++ {
-		fmt.Println(problems[i].String())
+		t.Log(problems[i].String())
 	}
 }
+
