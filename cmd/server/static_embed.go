@@ -3,7 +3,6 @@
 package main
 
 import (
-	"log"
 	"flag"
 	"embed"
 	"html/template"
@@ -24,13 +23,13 @@ var extractContents *bool = flag.Bool("extractStatic", false, "Extract static co
 // TODO: To make better use of optimizations, extract from embed and
 // copy to a temp directory at startup.
 func loadStaticContent(r *gin.Engine)  {
-	log.Println("[ROUTER INIT] Loading assets from files embedded at compile time")
+	l.Println("Loading assets from files embedded at compile time")
 	// Loading templates
 	templs, err := template.New("").
 		ParseFS(content, "web/templates/*")
 	
 	if err != nil {
-		log.Fatalf("[ROUTER INIT] Error parsing templates:\n%s\n", err)
+		l.Fatalf("Error parsing templates:\n%s\n", err)
 	}
 
 	r.SetHTMLTemplate(templs)
@@ -40,7 +39,7 @@ func loadStaticContent(r *gin.Engine)  {
 	
 	assetsFS, err := fs.Sub(content, "web/assets")
 	if err != nil {
-		log.Fatalf("[ROUTER INIT] Error getting subdirectory assets:\n%s\n", err)
+		l.Fatalf("Error getting subdirectory assets:\n%s\n", err)
 	}
 
 	// Loading assets from the filesystem returned by fs.Sub

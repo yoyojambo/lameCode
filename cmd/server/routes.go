@@ -2,9 +2,14 @@ package main
 
 import (
 	"lameCode/web/app"
+	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
+
+var l *log.Logger = log.New(os.Stdout, "[ROUTER INIT] ", log.LstdFlags | log.Lmsgprefix)
+
 
 // Loads all routes in the app, including both static assets,
 // templates, and the route handlers in web/app
