@@ -4,22 +4,63 @@ import (
 	"database/sql"
 	"lameCode/platform/config"
 	"log"
+	"os"
 	"strings"
 	"sync"
 
 	_ "embed"
 
+	"net/url"
+
+	_ "github.com/tursodatabase/libsql-client-go/libsql"
 	_ "modernc.org/sqlite"
 )
 
 // Creates database connection based on application configuration
 var loadDB = sync.OnceValue(func() *sql.DB {
-	db, err := sql.Open("sqlite", config.DbFile())
+	var db *sql.DB
+	var err error
+	
+	l := log.New(os.Stdout, "[data/client] ", log.LstdFlags | log.Lmsgprefix)
+	l.Println("Initializing connection to", config.DbUrl())
+	l.Println("with separate token", config.DbAuthToken())
+
+	if config.LocalDB() {
+		db, err = sql.Open("sqlite", config.DbUrl())
+	} else {
+		u, err := url.Parse(config.DbUrl())
+		if err != nil {
+			l.Fatalf("Could not parse url for remote database connection: %v", err)
+		}
+		q := u.Query()
+
+		if u.Scheme != "libsql" {
+			u.Scheme = "libsql"
+		}
+		// Set token if in auth flag
+		// Overrides if it was already in the url (on purpose)
+		if config.DbAuthToken() == "" {
+			if !q.Has("authToken") {
+				l.Fatalln("No auth token found in URL or --auth flag")
+			}
+		} else {
+			if q.Has("authToken") {
+				l.Println("Overriding auth token in database URL")
+			}
+			q.Set("authToken", config.DbAuthToken())
+			u.RawQuery = q.Encode()
+		}
+
+		l.Println("Connecting with finished URL")
+		db, err = sql.Open("libsql", u.String())
+	}
+
+	// Handle error in sql.Open (remote OR local)
 	if err != nil {
 		panic(err)
 	}
 
-	log.Println("[data/client] Initialized SQL conn to", config.DbFile())
+	l.Println("Initialized SQL conn to", config.DbUrl())
 
 	return db
 })

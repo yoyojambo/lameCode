@@ -3,15 +3,24 @@ package main
 import (
 	"flag"
 
-	"github.com/gin-gonic/gin"	
+	"lameCode/platform/config"
+	"lameCode/platform/data"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	r := gin.Default()
-	
-	loadRoutes(r) // router.go
-	
+	config.LoadServerFlags()
 	flag.Parse()
+
+	if config.Debug() {
+		data.DB().Ping()
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
+	r := gin.Default()
+	loadRoutes(r) // router.go
 
 	r.Run(":3000")
 }
