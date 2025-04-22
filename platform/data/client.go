@@ -23,8 +23,11 @@ var loadDB = sync.OnceValue(func() *sql.DB {
 	
 	l := log.New(os.Stdout, "[data/client] ", log.LstdFlags | log.Lmsgprefix)
 	l.Println("Initializing connection to", config.DbUrl())
-	l.Println("with separate token", config.DbAuthToken())
 
+	if !config.LocalDB() && config.DbAuthToken() != ""{
+		l.Println("with separate token", config.DbAuthToken())
+	}
+	
 	if config.LocalDB() {
 		db, err = sql.Open("sqlite", config.DbUrl())
 	} else {

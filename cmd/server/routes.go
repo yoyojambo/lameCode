@@ -29,8 +29,10 @@ func loadRoutes(r *gin.Engine) {
 	// ALL handlers to be loaded.  
 	// Should ideally only be a bunch of pkg.LoadPkgHandlers(r)
 	// That does require packages to "own" their subroutes.
+
 	//users.LoadUsersHandlers(r) // / /users/ /login
-	app.LoadProblemHandlers(r)
+	app.LoadProblemHandlers(r) // /problems /problem/:id
+	app.LoadJudgeHandlers(r)   // /judge/test /judge/submit
 }
 
 
