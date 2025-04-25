@@ -111,6 +111,9 @@ func problemFunc(ctx *gin.Context) {
 		// fromChallenge creates an object with the unescaped Descrtiption
 		"Problem": fromChallenge(p),
 	}
+	if !config.Debug() {
+		ctx.Header("Cache-Control", "public, max-age=31536000")
+	}
 	ctx.HTML(http.StatusOK, "problem.html", data)
 }
 

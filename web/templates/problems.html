@@ -1,10 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Challenges</title>
+  <link rel="stylesheet" href="/assets/custom.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+  <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+  <style>
+    /* Global styling */
+	
+    .container {
+      background-color: #fff;
+      /* border-radius: 8px; */
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+	
+    /* Style for difficulty boxes */
+    .difficulty {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      color: white;
+      font-size: 0.8em;
+    }
+
+    .difficulty-1 { background-color: green; }
+    .difficulty-2 { background-color: orange; }
+    .difficulty-3 { background-color: red; }
+
+    /* Hover effect for clickable items */
+    a:hover {
+      background-color: #c4c4c4;
+      border-color: #ddd;
+    }
+  </style>
+</head>
+<body>
+  {{template "navbar"}}
+  <div class="container">
+    <h1 style="text-align: center">All Challenges</h1>
+    <div id="challenge-list" hx-get="/problemlist?page=1" hx-trigger="load" hx-swap="innerHTML"></div>
+  </div>
+</body>
+</html>
 {{ define "challengeList" }}
 <div>
   <ul style="list-style: none; padding: 0;">
     {{- range .Challenges }}
       <li style="margin-bottom: 20px;">
         <a href="/problem/{{ .ID }}" style="text-decoration: none; color: inherit; display: block; padding: 10px; border: 1px solid transparent; border-radius: 4px; transition: background-color 0.3s;">
-          <h2 style="margin: 0;">{{ .Title }}</h2>
+          <h5 style="margin: 0;"><b>{{ .Title }}</b></h5>
           <p style="margin: 5px 0;">
             <span class="difficulty difficulty-{{ .Difficulty }}">
               Difficulty: {{ .Difficulty }}
@@ -16,8 +61,6 @@
       <li>No challenges available.</li>
     {{- end }}
   </ul>
-
-  {{- /* Infinite scrolling trigger: if there is a next page, automatically load more when this div is revealed */}}
 </div>
   {{- if .HasNext }}
     <div hx-get="/problemlist?page={{ .NextPage }}" 
@@ -28,57 +71,3 @@
     </div>
   {{- end }}
 {{ end }}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Challenges</title>
-  <!-- Include HTMX from CDN -->
-  <script src="https://unpkg.com/htmx.org@1.9.2"></script>
-  <style>
-    /* Global styling */
-    body {
-      font-family: sans-serif;
-      margin: 20px;
-      text-align: center;
-      background-color: #f0f0f0;
-    }
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    /* Style for difficulty boxes */
-    .difficulty {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      color: white;
-      font-size: 0.8em;
-    }
-    .difficulty-1 { background-color: green; }
-    .difficulty-2 { background-color: orange; }
-    .difficulty-3 { background-color: red; }
-    /* Hover effect for clickable items */
-    a:hover {
-      background-color: #f9f9f9;
-      border-color: #ddd;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>All Challenges</h1>
-    <!-- 
-         The container #challenge-list uses HTMX to request the first page from "/problemlist?page=1" on load,
-         and the response (rendered by the "challengeList" template) will be injected into this div.
-    -->
-    <div id="challenge-list" hx-get="/problemlist?page=1" hx-trigger="load" hx-swap="innerHTML">
-      <!-- Content dynamically loaded here -->
-    </div>
-  </div>
-</body>
-</html>

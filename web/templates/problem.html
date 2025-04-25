@@ -4,22 +4,17 @@
   <meta charset="UTF-8">
   <title>LameCode - {{ .Problem.Title }}</title>
   <!-- Minimal CSS (Skeleton) -->
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
   <script src="https://cdn.jsdelivr.net/npm/htmx.org@1.9.2"></script>
   <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.47.0/min/vs/loader.js"></script>
+  <link rel="stylesheet" href="/assets/custom.css">
 
   <script>
   </script>
 
   <style>
     /* Body and background */
-    body {
-      background-color: #f0f2f5;
-      margin: 0;
-      padding: 0;
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    }
+    
 
     /* Container override for a bit more width */
     .container {
@@ -28,25 +23,6 @@
       padding: 1rem;
     }
 
-    /* NavBar styling */
-    .navbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-      background-color: #ffffff;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      padding: 0.5rem 1rem;
-    }
-    .navbar a {
-      margin-right: 1rem;
-      text-decoration: none;
-      color: #333;
-    }
-    .navbar a:hover {
-      text-decoration: underline;
-    }
 
     /* Avatar */
     .avatar {
@@ -58,13 +34,7 @@
     }
 
     /* Boxes for the left (problem) and right (editor) columns */
-    .box {
-      background-color: #fff;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-    }
+    
 
     /* Difficulty label styling */
     .difficulty {
@@ -100,7 +70,7 @@
 	min-height: 300px;   /* ensures it never collapses above this */
     }
 
-    /* — or— use flex on the container so the editor stretches: */
+    /* —or— use flex on the container so the editor stretches: */
     .editor-container {
 	display: flex;
 	flex-direction: column;
@@ -226,29 +196,7 @@
   </style>
 </head>
 <body>
-
-  <!-- Top NavBar -->
-  <div class="container">
-    <div class="navbar">
-      <div>
-        <a href="/">Problems</a>
-        <a href="/settings">Settings</a>
-        {{ if .User.LoggedIn }}
-          <a href="/logout">Logout</a>
-        {{ else }}
-          <a href="/login">Login</a>
-        {{ end }}
-      </div>
-      <div>
-        {{ if .User.Avatar }}
-          <img src="{{ .User.Avatar }}" alt="Avatar" class="avatar">
-          {{ .User.Username }}
-        {{ else }}
-          Anonymous
-        {{ end }}
-      </div>
-    </div>
-  </div>
+  {{template "navbar"}}
 
   <!-- Main Content -->
   <div class="container">
@@ -258,13 +206,13 @@
         <h3>{{ .Problem.Title }}</h3>
         {{/* Difficulty label logic */}}
         {{ if eq .Problem.Difficulty 1 }}
-          <span class="difficulty easy">Easy</span>
+        <span class="difficulty easy">Easy</span>
         {{ else if eq .Problem.Difficulty 2 }}
-          <span class="difficulty medium">Medium</span>
+        <span class="difficulty medium">Medium</span>
         {{ else if eq .Problem.Difficulty 3 }}
-          <span class="difficulty hard">Hard</span>
+        <span class="difficulty hard">Hard</span>
         {{ else }}
-          <span class="difficulty">Not tagged</span>
+        <span class="difficulty">Not tagged</span>
         {{ end }}
 
         <!-- Problem description is rendered as HTML -->
@@ -275,51 +223,53 @@
 
       <!-- Right Column: Code Editor and Results -->
 
-      <div class="editor-container">
-	<div class="editor-top-bar">
-	  <select id="language-select" name="language">
-	    <option value="go">Go</option>
-	    <option value="python">Python</option>
-	    <option value="javascript">JavaScript</option>
-	  </select>
-	  <button id="reset-button" type="button">Reset</button>
-	</div>
+      <div class="six columns box" style="margin-left: 1%">
+		<div class="editor-container">
+		  <div class="editor-top-bar">
+			<select id="language-select" name="language">
+			  <option value="go">Go</option>
+			  <option value="python">Python</option>
+			  <option value="javascript">JavaScript</option>
+			</select>
+			<button id="reset-button" type="button">Reset</button>
+		  </div>
 
-	<div id="code-editor"></div>
-	<textarea id="code-input" name="code" hidden></textarea>
+		  <div id="code-editor"></div>
+		  <textarea id="code-input" name="code" hidden></textarea>
 
-	<div class="editor-bottom-bar">
-	  <button id="test-button"
-		  hx-post="/judge/test"
-		  hx-include="#code-input,#language-select"
-		  hx-target="#results"
-		  hx-swap="innerHTML"
-		  hx-indicator=".spinner"
-		  type="button"
-		  onclick="document.getElementById('code-input').value = window.editor.getValue()"
-		  >Test</button>
+		  <div class="editor-bottom-bar">
+			<button id="test-button"
+					hx-post="/judge/test"
+					hx-include="#code-input,#language-select"
+					hx-target="#results"
+					hx-swap="innerHTML"
+					hx-indicator=".spinner"
+					type="button"
+					onclick="document.getElementById('code-input').value = window.editor.getValue()"
+					>Test</button>
 
-	  <button id="submit-button"
-		  hx-post="/judge/submit"
-		  hx-include="#code-input,#language-select"
-		  hx-target="#submission-modal .modal-content p"
-		  hx-swap="innerHTML"
-		  hx-indicator=".spinner"
-		  type="button"
-		  onclick="document.getElementById('code-input').value = window.editor.getValue()"
-		  >Submit</button>
+			<button id="submit-button"
+					hx-post="/judge/submit"
+					hx-include="#code-input,#language-select"
+					hx-target="#submission-modal .modal-content p"
+					hx-swap="innerHTML"
+					hx-indicator=".spinner"
+					type="button"
+					onclick="document.getElementById('code-input').value = window.editor.getValue()"
+					>Submit</button>
 
-	  <div class="spinner">⏳</div>
-	</div>
+			<div class="spinner">⏳</div>
+		  </div>
 
-	<div id="results" class="results">No results yet.</div>
-      </div>
+		  <div id="results" class="results">No results yet.</div>
+		</div>
+	  </div>
 
       <div id="submission-modal" class="modal" style="display:none">
-	<div class="modal-content">
-	  <span class="close" onclick="document.getElementById('submission-modal').style.display='none'">&times;</span>
-	  <p>Your code has been submitted. We’ll let you know the results soon!</p>
-	</div>
+		<div class="modal-content">
+		  <span class="close" onclick="document.getElementById('submission-modal').style.display='none'">&times;</span>
+		  <p>Your code has been submitted. We’ll let you know the results soon!</p>
+		</div>
       </div>
       
     </div>
