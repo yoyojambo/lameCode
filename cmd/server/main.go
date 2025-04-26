@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"log"
+	"os"
 
 	"lameCode/platform/config"
 	"lameCode/platform/data"
@@ -22,5 +24,12 @@ func main() {
 	r := gin.Default()
 	loadRoutes(r) // router.go
 
-	r.Run(":3000")
+	port := "3000" // Default port
+
+	// Check for override of port
+	if p := os.Getenv("PORT"); p != "" {
+		port = p
+	}
+	err := r.Run(":" + port)
+	log.Fatalln("Exited server with err:", err)
 }

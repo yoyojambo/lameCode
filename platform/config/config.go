@@ -40,38 +40,38 @@ const (
 
 // Flags that can be set from command line
 var (
-	db_URL     *string
-	create     *bool
-	envFile    *string
-	debug      *bool
-	remote     *bool
-	turso_auth *string
+	db_URL     string
+	create     bool
+	envFile    string
+	debug      bool = true
+	remote     bool
+	turso_auth string
 )
 
 // Activate flags designated for server configuration.
 // TODO: Maybe implement this as flagsets instead? This is getting ugly
 func LoadServerFlags() {
-	db_URL     = flag.String("db-url", DEFAULT_SQLITE_DB_FILE, db_file_usage)
-	create     = flag.Bool("create-db", false, create_db_usage)              
-	envFile    = flag.String("env", DEFAULT_DOT_ENV, env_file_usage)         
-	debug      = flag.Bool("debug", false, debug_usage)                      
-	remote     = flag.Bool("remote", false, remote_usage)                    
-	turso_auth = flag.String("token", "", auth_token_usage)
+	flag.StringVar(&db_URL, "db-url", DEFAULT_SQLITE_DB_FILE, db_file_usage)
+	flag.StringVar(&turso_auth, "token", "", auth_token_usage)
+	flag.BoolVar(&create, "create-db", false, create_db_usage)              
+	flag.StringVar(&envFile, "env", DEFAULT_DOT_ENV, env_file_usage)         
+	flag.BoolVar(&debug, "debug", false, debug_usage)
+	flag.BoolVar(&remote, "remote", false, remote_usage)                    
 }
 
 func DbUrl() string {
-	return *db_URL
+	return db_URL
 }
 
 func DbAuthToken() string {
-	return *turso_auth
+	return turso_auth
 }
 
 func Debug() bool {
-	return *debug
+	return debug
 }
 
 // Currently only local database, Turso later on
 func LocalDB() bool {
-	return !*remote
+	return !remote
 }
