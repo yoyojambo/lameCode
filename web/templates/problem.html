@@ -4,26 +4,18 @@
   <meta charset="UTF-8">
   <title>LameCode - {{ .Problem.Title }}</title>
   <!-- Minimal CSS (Skeleton) -->
+  <link rel="stylesheet" href="/assets/custom.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
   <script src="https://cdn.jsdelivr.net/npm/htmx.org@1.9.2"></script>
   <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.47.0/min/vs/loader.js"></script>
-  <link rel="stylesheet" href="/assets/custom.css">
-
-  <script>
-  </script>
 
   <style>
-    /* Body and background */
-    
-
     /* Container override for a bit more width */
     .container {
       max-width: 1200px;
       margin: 0 auto;
       padding: 1rem;
     }
-
-
     /* Avatar */
     .avatar {
       width: 32px;
@@ -152,6 +144,7 @@
       min-width: 100px;
       z-index: 999;
     }
+	
     .dropdown-content a {
       display: block;
       padding: 0.5rem;
@@ -199,7 +192,8 @@
   {{template "navbar"}}
 
   <!-- Main Content -->
-  <div class="container">
+  <div id="main" class="container">
+	{{block "problem" .}}
     <div class="row">
       <!-- Left Column: Problem Details -->
       <div class="six columns box">
@@ -271,8 +265,9 @@
 		  <p>Your code has been submitted. We’ll let you know the results soon!</p>
 		</div>
       </div>
-      
+
     </div>
+      {{end}}
   </div>
 
   <script>

@@ -114,11 +114,20 @@ func problemFunc(ctx *gin.Context) {
 	if !config.Debug() {
 		ctx.Header("Cache-Control", "public, max-age=31536000")
 	}
-	ctx.HTML(http.StatusOK, "problem.html", data)
+
+	tmpl := "problem.html"
+	if ctx.GetHeader("HX-Request") == "true" {
+		tmpl = "problem"
+	}
+	ctx.HTML(http.StatusOK, tmpl, data)
 }
 
 func problemSetFunc(ctx *gin.Context) {
-	ctx.HTML(http.StatusOK, "problems.html", nil)
+	tmpl := "problems.html"
+	if ctx.GetHeader("HX-Request") == "true" {
+		tmpl = "problemTable"
+	}
+	ctx.HTML(http.StatusOK, tmpl, nil)
 }
 
 func problemsSetPageFunc(ctx *gin.Context) {

@@ -6,6 +6,8 @@
   <link rel="stylesheet" href="/assets/custom.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
   <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.47.0/min/vs/loader.js"></script>
+
   <style>
     /* Global styling */
 	
@@ -37,13 +39,16 @@
 </head>
 <body>
   {{template "navbar"}}
-  <div class="container">
+
+  <div id="main" class="container">
+  {{block "problemTable" .}}
     <h1 style="text-align: center">All Challenges</h1>
     <div id="challenge-list" hx-get="/problemlist?page=1" hx-trigger="load" hx-swap="innerHTML"></div>
+  {{end}}
   </div>
 </body>
 </html>
-{{ define "challengeList" }}
+{{ define "challengeList"}}
 <div>
   <ul style="list-style: none; padding: 0;">
     {{- range .Challenges }}
@@ -62,12 +67,12 @@
     {{- end }}
   </ul>
 </div>
-  {{- if .HasNext }}
-    <div hx-get="/problemlist?page={{ .NextPage }}" 
-         hx-trigger="revealed" 
-         hx-swap="outerHTML"
-         style="padding: 10px; text-align: center; font-style: italic;">
-      Loading more challenges…
-    </div>
-  {{- end }}
+{{- if .HasNext }}
+<div hx-get="/problemlist?page={{ .NextPage }}" 
+     hx-trigger="revealed" 
+     hx-swap="outerHTML"
+     style="padding: 10px; text-align: center; font-style: italic;">
+  Loading more challenges…
+</div>
+{{- end }}
 {{ end }}
