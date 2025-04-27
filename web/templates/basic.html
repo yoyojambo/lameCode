@@ -3,19 +3,19 @@
   <div>
     <a href="/">Problems</a>
     <a href="/settings">Settings</a>
-    {{ if .User.LoggedIn }}
+    {{- if .User.LoggedIn -}}
     <a href="/logout">Logout</a>
     {{ else }}
     <a href="/login">Login</a>
-    {{ end }}
+    {{- end }}
   </div>
   <div>
-    {{ if .User.Avatar }}
+    {{- if .User.Avatar }}
     <img src="{{ .User.Avatar }}" alt="Avatar" class="avatar">
     {{ .User.Username }}
     {{ else }}
-    Anonymous
-    {{ end }}
+    <span>Anonymous</span>
+    {{- end }}
   </div>
 </div>
 {{end}}

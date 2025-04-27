@@ -1,3 +1,4 @@
+{{- /* This is the main template, including the headers necessary for style all pages and the editor in problem.html */ -}}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,25 +11,34 @@
   <script src="/assets/editor.js"></script>
 </head>
 <body>
-  {{template "navbar"}}
+  {{- template "navbar" -}}
 
   <div id="main" class="container">
-  {{block "problemTable" .}}
-    <h1 style="text-align: center">All Challenges</h1>
+	{{- block "problemTable" .}}
+	<h1 style="text-align: center">All Challenges</h1>
+	
+	{{- if .Challenges}}
+	{{ template "challengeList" .}}
+	{{ else }}
     <div id="challenge-list" hx-get="/problemlist?page=1" hx-trigger="load" hx-swap="innerHTML"></div>
-  {{end}}
+	{{ end }}
+	
+	{{- end }}
   </div>
 </body>
 </html>
-{{ define "challengeList"}}
-<div>
-  <ul hx-boost="true" hx-target="#main" hx-swap="innerHTML show:#navbar:top" style="list-style: none; padding: 0;">
-    {{- range .Challenges }}
-      <li style="margin-bottom: 20px;">
-        <a href="/problem/{{ .ID }}" style="text-decoration: none; color: inherit; display: block; padding: 10px; border: 1px solid transparent; border-radius: 4px; transition: background-color 0.3s;">
-          <h5 style="margin: 0;"><b>{{ .Title }}</b></h5>
-          <p style="margin: 5px 0;">
-			{{ if eq .Difficulty 1 }}
+
+{{- /* This is the challengelist template that actually shows challenges, and loads new ones  */ -}}
+
+{{define "challengeList"}}
+  <div>
+	<ul hx-boost="true" hx-target="#main" hx-swap="innerHTML show:#navbar:top" style="list-style: none; padding: 0;">
+	  {{- range .Challenges }}
+	  <li style="margin-bottom: 20px;">
+		<a href="/problem/{{ .ID }}" style="text-decoration: none; color: inherit; display: block; padding: 10px; border: 1px solid transparent; border-radius: 4px; transition: background-color 0.3s;">
+		  <h5 style="margin: 0;"><b>{{ .Title }}</b></h5>
+		  <p style="margin: 5px 0;">
+			{{- if eq .Difficulty 1 }}
 			<span class="difficulty easy">Easy</span>
 			{{ else if eq .Difficulty 2 }}
 			<span class="difficulty medium">Medium</span>
@@ -36,21 +46,22 @@
 			<span class="difficulty hard">Hard</span>
 			{{ else }}
 			<span class="difficulty">Not tagged</span>
-			{{ end }}
-          </p>
-        </a>
-      </li>
-    {{- else }}
-      <li>No challenges available.</li>
-    {{- end }}
-  </ul>
-</div>
-{{- if .HasNext }}
-<div hx-get="/problemlist?page={{ .NextPage }}" 
-     hx-trigger="revealed" 
-     hx-swap="outerHTML"
-     style="padding: 10px; text-align: center; font-style: italic;">
-  Loading more challenges…
-</div>
-{{- end }}
+			{{- end }}
+		  </p>
+		</a>
+	  </li>
+	  {{- else }}
+	  <li>No challenges available.</li>
+	  {{- end }}
+	</ul>
+  </div>
+
+  {{- if .HasNext }}
+  <div hx-get="/problemlist?page={{ .NextPage }}" 
+	   hx-trigger="revealed" 
+	   hx-swap="outerHTML"
+	   style="padding: 10px; text-align: center; font-style: italic;">
+	Loading more challenges…
+  </div>
+  {{- end }}
 {{ end }}

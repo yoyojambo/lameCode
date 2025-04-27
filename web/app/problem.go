@@ -111,10 +111,15 @@ func problemFunc(ctx *gin.Context) {
 		// fromChallenge creates an object with the unescaped Descrtiption
 		"Problem": fromChallenge(p),
 	}
+	
+	// Handle caching
+	ctx.Header("Vary", "HX-Boosted")
 	if !config.Debug() {
-		ctx.Header("Cache-Control", "public, max-age=31536000")
+		ctx.Header("Cache-Control", "public, max-age=1800")
+	} else {
+		ctx.Header("Cache-Control", "max-age=600, must-revalidate")
 	}
-
+	
 	tmpl := "problem.html"
 	if ctx.GetHeader("HX-Request") == "true" {
 		tmpl = "problem"
@@ -122,44 +127,60 @@ func problemFunc(ctx *gin.Context) {
 	ctx.HTML(http.StatusOK, tmpl, data)
 }
 
-func problemSetFunc(ctx *gin.Context) {
+func problemSetFunc(ctx *gin.Context) {	
+	// Handle caching
+	ctx.Header("Vary", "HX-Boosted")
+	if !config.Debug() {
+		ctx.Header("Cache-Control", "public, max-age=1800")
+	} else {
+		ctx.Header("Cache-Control", "max-age=600, must-revalidate")
+	}
+
+	// Generate data
 	tmpl := "problems.html"
 	if ctx.GetHeader("HX-Request") == "true" {
 		tmpl = "problemTable"
 	}
-	ctx.HTML(http.StatusOK, tmpl, nil)
+	
+	pageData := getPageData(ctx, 1)
+
+	ctx.HTML(http.StatusOK, tmpl, pageData)
 }
 
 func problemsSetPageFunc(ctx *gin.Context) {
-	repo := data.Repository()
-
 	pageStr := ctx.Query("page")
+
 	//page, err := strconv.Atoi(pageStr)
 	page, err := strconv.ParseInt(pageStr, 10, 64) // Straigt to int64
 	if err != nil || page < 1 {
 		page = 1
 	}
 
+	pageData := getPageData(ctx, page)
+
+	// Render the partial template for HTMX.
+	ctx.HTML(http.StatusOK, "challengeList", pageData)
+}
+
+func getPageData(ctx *gin.Context, page int64) ChallengePage {
+	repo := data.Repository()
+
 	const pageSize = 30
 	offset := (page - 1) * pageSize
 
 	// Query the paginated challenges.
 	challenges, err := repo.GetChallengesPaginated(ctx, pageSize, offset)
-	if config.Debug() {
-		log.Printf("Problems:\n  PAGE: %d\n  OFFSET: %d\n", page, offset)
-	}
 	if err != nil {
 		log.Printf("error fetching paginated challenges: %v", err)
-		ctx.String(http.StatusInternalServerError, "Internal server error")
-		return
+		return ChallengePage{}
 	}
 
 	// Optionally, retrieve the total count to determine pagination links.
 	countRow, err := repo.CountChallenges(ctx)
 	if err != nil {
 		log.Printf("error counting challenges: %v", err)
-		ctx.String(http.StatusInternalServerError, "Internal server error")
-		return
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return ChallengePage{}
 	}
 
 	// Determine if previous and next pages exist.
@@ -167,7 +188,7 @@ func problemsSetPageFunc(ctx *gin.Context) {
 	hasNext := (page * pageSize) < countRow
 
 	// Build the page structure.
-	pageData := ChallengePage{
+	return ChallengePage{
 		Challenges:  challenges,
 		HasPrev:     hasPrev,
 		HasNext:     hasNext,
@@ -175,7 +196,4 @@ func problemsSetPageFunc(ctx *gin.Context) {
 		NextPage:    page + 1,
 		CurrentPage: page,
 	}
-
-	// Render the partial template for HTMX.
-	ctx.HTML(http.StatusOK, "challengeList", pageData)
 }
