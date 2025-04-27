@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
   <script src="https://unpkg.com/htmx.org@1.9.2"></script>
   <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.47.0/min/vs/loader.js"></script>
+  <script src="/assets/editor.js"></script>
 </head>
 <body>
   {{template "navbar"}}
@@ -21,7 +22,7 @@
 </html>
 {{ define "challengeList"}}
 <div>
-  <ul style="list-style: none; padding: 0;">
+  <ul hx-boost="true" hx-target="#main" hx-swap="innerHTML show:#navbar:top" style="list-style: none; padding: 0;">
     {{- range .Challenges }}
       <li style="margin-bottom: 20px;">
         <a href="/problem/{{ .ID }}" style="text-decoration: none; color: inherit; display: block; padding: 10px; border: 1px solid transparent; border-radius: 4px; transition: background-color 0.3s;">
