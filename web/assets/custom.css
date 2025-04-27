@@ -35,6 +35,9 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 1rem;
+	
+	background-color: #fff;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .box {
@@ -44,3 +47,126 @@ body {
     padding: 1rem;
     margin-bottom: 1rem;
 }
+/* ── Links ────────────────────────────────────── */
+a:hover {
+  background-color: #c4c4c4;
+  border-color: #ddd;
+}
+
+/* ── Difficulty badges ───────────────────────── */
+.difficulty {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 0.8em;
+  margin-bottom: 0.5rem;
+}
+.difficulty.easy   { background-color: #28a745; }
+.difficulty.medium { background-color: #ffc107; color: #000; }
+.difficulty.hard   { background-color: #dc3545; }
+
+/* ── Avatar (now shared) ─────────────────────── */
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-right: 0.5rem;
+}
+
+/* ── HTMX spinner ────────────────────────────── */
+body.htmx-request .spinner { display: inline-block; }
+.spinner { display: none; }
+
+/* ── Editor container basics ─────────────────── */
+.editor-container {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  height: 100%;
+}
+#code-editor {
+  flex: 1 1 auto;
+  min-height: 300px;
+  border: 1px solid #ccc;
+}
+.results {
+  height: 200px;
+  border: 1px solid #ccc;
+  overflow: auto;
+}
+
+/* ── Tabs ────────────────────────────────────── */
+.editor-tabs { margin-bottom: 0.5rem; }
+.tab-button {
+  background: #e9ecef;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  margin-right: 0.5rem;
+  outline: none;
+}
+.tab-button.active {
+  background-color: #d1d3d4;
+  border-bottom: 2px solid #000;
+}
+.tab-content {
+  background-color: #f8f8f8;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 0.5rem;
+  min-height: 300px;
+}
+
+/* ── Textarea styling ────────────────────────── */
+.code-textarea {
+  width: 100%;
+  border: none;
+  background: transparent;
+  resize: none;
+  font-family: monospace;
+  font-size: 0.9rem;
+  outline: none;
+  height: 300px;
+}
+
+/* ── Dropdown & modal ────────────────────────── */
+.editor-bottom-bar { text-align: right; margin-top: 1rem; }
+.dropdown { position: relative; display: inline-block; }
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  min-width: 100px;
+  z-index: 999;
+}
+.dropdown:hover .dropdown-content { display: block; }
+.dropdown-content a {
+  display: block;
+  padding: 0.5rem;
+  text-decoration: none;
+  color: #333;
+}
+.dropdown-content a:hover { background-color: #f2f2f2; }
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+}
+.modal-content {
+  background: #fff;
+  margin: 10% auto;
+  padding: 1rem;
+  width: 400px;
+  border-radius: 4px;
+}
+.modal-header { font-weight: bold; margin-bottom: 1rem; }
+.close { float: right; cursor: pointer; font-weight: bold; }
+
