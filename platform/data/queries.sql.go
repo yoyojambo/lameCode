@@ -77,7 +77,7 @@ func (q *Queries) GetChallenges(ctx context.Context) ([]Challenge, error) {
 
 const getChallengesPaginated = `-- name: GetChallengesPaginated :many
 SELECT id, title, description, difficulty, created_at, updated_at FROM challenges 
-ORDER BY created_at DESC 
+ORDER BY title DESC 
 LIMIT ? OFFSET ?
 `
 
@@ -170,6 +170,41 @@ func (q *Queries) GetSolutionsForChallenge(ctx context.Context, challengeID int6
 			&i.RuntimeInfo,
 			&i.CreatedAt,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getTestDataForChallenge = `-- name: GetTestDataForChallenge :many
+SELECT input_data as input, expected_output as output
+FROM challenge_tests
+WHERE challenge_id = ?
+ORDER BY length(input_data) ASC
+`
+
+type GetTestDataForChallengeRow struct {
+	Input  string `json:"input"`
+	Output string `json:"output"`
+}
+
+func (q *Queries) GetTestDataForChallenge(ctx context.Context, challengeID int64) ([]GetTestDataForChallengeRow, error) {
+	rows, err := q.db.QueryContext(ctx, getTestDataForChallenge, challengeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetTestDataForChallengeRow
+	for rows.Next() {
+		var i GetTestDataForChallengeRow
+		if err := rows.Scan(&i.Input, &i.Output); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

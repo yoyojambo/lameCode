@@ -48,6 +48,12 @@ SELECT * FROM challenge_tests
 WHERE challenge_id = ?
 ORDER BY id;
 
+-- name: GetTestDataForChallenge :many
+SELECT input_data as input, expected_output as output
+FROM challenge_tests
+WHERE challenge_id = ?
+ORDER BY length(input_data) ASC;
+
 -- name: NewSolution :one
 INSERT INTO solutions (user_id, challenge_id, code, language, status, runtime_info)
 VALUES (?, ?, ?, ?, ?, ?)

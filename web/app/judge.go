@@ -20,7 +20,7 @@ func LoadJudgeHandlers(r *gin.Engine) {
 
 // printSubmission is just for testing the frontend
 // Response is swapped by HTMX
-func printSubmission(ctx *gin.Context)  {
+func printSubmission(ctx *gin.Context) {
 	var submission Submission
 	if err := ctx.ShouldBind(&submission); err != nil {
 		
@@ -30,4 +30,8 @@ func printSubmission(ctx *gin.Context)  {
 	}
 
 	ctx.JSON(http.StatusOK, submission)
+}
+
+func testSubmission(lang, code string, challenge_id int64) {
+	
 }
