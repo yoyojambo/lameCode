@@ -77,7 +77,7 @@ func (q *Queries) GetChallenges(ctx context.Context) ([]Challenge, error) {
 
 const getChallengesPaginated = `-- name: GetChallengesPaginated :many
 SELECT id, title, description, difficulty, created_at, updated_at FROM challenges 
-ORDER BY title DESC 
+ORDER BY title ASC 
 LIMIT ? OFFSET ?
 `
 

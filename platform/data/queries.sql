@@ -35,7 +35,7 @@ SELECT COUNT(*) AS count FROM challenges;
 
 -- name: GetChallengesPaginated :many
 SELECT * FROM challenges 
-ORDER BY title DESC 
+ORDER BY title ASC 
 LIMIT ? OFFSET ?;
 
 -- name: NewChallengeTest :one
