@@ -15,7 +15,7 @@
 
   <!-- Main Content -->
   <div id="main" class="container">
-	{{block "problem" .}}
+    {{block "problem" .}}
     <div class="row">
       <!-- Left Column: Problem Details -->
       <div class="six columns box">
@@ -55,7 +55,7 @@
 
 		  <div class="editor-bottom-bar">
 			<button id="test-button"
-					hx-post="/judge/test"
+					hx-post="/judge/test/{{.Problem.Id}}"
 					hx-include="#code-input,#language-select"
 					hx-target="#results"
 					hx-swap="innerHTML"
@@ -93,3 +93,42 @@
   </div>
 </body>
 </html>
+
+{{- define "result-table"}}
+<table class="u-full-width results-table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Pass</th>
+      <th>Runtime (ms)</th>
+      <th>Max Memory Used (Bytes)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{range .}}
+    <tr>
+      <td>{{.Name}}</td>
+      <td>
+        {{if .Pass}}
+          <span class="pass-status pass">Pass</span>
+        {{else}}
+          <span class="pass-status fail">Fail</span>
+        {{end}}
+      </td>
+      <td>{{.Runtime}}</td>
+      <td>{{.MaxMemUsed}}</td>
+    </tr>
+    {{else}}
+    <tr>
+      <td colspan="4" class="no-results">No results to display.</td>
+    </tr>
+    {{end}}
+  </tbody>
+</table>
+
+<div class="htmx-indicator result-spinner">
+  <div class="double-bounce1"></div>
+  <div class="double-bounce2"></div>
+</div>
+{{end -}}
+

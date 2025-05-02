@@ -60,6 +60,7 @@ type ChallengePage struct {
 // Local representation of a challenge.
 // Necessary so Gin renders the HTML description correctly.
 type Challenge struct {
+	Id int64
 	Title string
 	Difficulty int64
 	Description template.HTML
@@ -84,6 +85,7 @@ func mdToHTML(md string) string {
 
 func fromChallenge(challenge data.Challenge) Challenge {
 	return Challenge{
+		Id: challenge.ID,
 		Title: challenge.Title,
 		                           // Essentially a cast :/
 		Description: template.HTML(mdToHTML(challenge.Description)),

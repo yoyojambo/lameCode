@@ -1,8 +1,12 @@
 package app
 
 import (
+	"lameCode/platform/data"
+	"lameCode/platform/judge"
 	"log"
 	"net/http"
+	"strconv"
+	"context"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,8 +18,8 @@ type Submission struct {
 
 func LoadJudgeHandlers(r *gin.Engine) {
 	g := r.Group("/judge")
-	g.POST("/test", printSubmission)
-	g.POST("/submit", printSubmission)
+	g.POST("/test/:id", testSubmission)
+	g.POST("/submit/:id", printSubmission)
 }
 
 // printSubmission is just for testing the frontend
@@ -23,7 +27,6 @@ func LoadJudgeHandlers(r *gin.Engine) {
 func printSubmission(ctx *gin.Context) {
 	var submission Submission
 	if err := ctx.ShouldBind(&submission); err != nil {
-		
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		log.Println(err)
 		return
@@ -32,6 +35,29 @@ func printSubmission(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, submission)
 }
 
-func testSubmission(lang, code string, challenge_id int64) {
+func testSubmission(ctx *gin.Context) {
+	challengeId, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		log.Println("Error parsing challenge id in /test:", err)
+	}
+
+	var submission Submission
+	if err := ctx.ShouldBind(&submission); err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		log.Println(err)
+		return
+	}
+
+	q := data.Repository()
+	testCtx := context.Background()
+	tests, err := q.GetTestsForChallenge(testCtx, challengeId)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+		log.Println("Error getting tests for challenge in test:", err)
+	}
+
+	results, err := judge.RunMultipleTests(submission.Code, submission.Language, tests)
 	
+	ctx.HTML(http.StatusOK, "result-table", results)
 }
