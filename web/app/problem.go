@@ -29,7 +29,6 @@ type User struct {
 	Avatar   string // or empty if none
 }
 
-
 func fromUser(user data.User) User {
 	return User{
 		LoggedIn: true,
@@ -47,22 +46,12 @@ func fromUsername(ctx *gin.Context, username string) User {
 	return fromUser(user)
 }
 
-// Information for a list of challenges, from a paged request
-type ChallengePage struct {
-	Challenges  []data.Challenge `json:"challenges"`
-	HasPrev     bool             `json:"has_prev"`
-	HasNext     bool             `json:"has_next"`
-	PrevPage    int64            `json:"prev_page"`
-	NextPage    int64            `json:"next_page"`
-	CurrentPage int64            `json:"current_page"`
-}
-
 // Local representation of a challenge.
 // Necessary so Gin renders the HTML description correctly.
 type Challenge struct {
-	Id int64
-	Title string
-	Difficulty int64
+	Id          int64
+	Title       string
+	Difficulty  int64
 	Description template.HTML
 }
 
@@ -85,11 +74,11 @@ func mdToHTML(md string) string {
 
 func fromChallenge(challenge data.Challenge) Challenge {
 	return Challenge{
-		Id: challenge.ID,
+		Id:    challenge.ID,
 		Title: challenge.Title,
-		                           // Essentially a cast :/
+		// Essentially a cast :/
 		Description: template.HTML(mdToHTML(challenge.Description)),
-		Difficulty: challenge.Difficulty,
+		Difficulty:  challenge.Difficulty,
 	}
 }
 
@@ -113,7 +102,7 @@ func problemFunc(ctx *gin.Context) {
 		// fromChallenge creates an object with the unescaped Descrtiption
 		"Problem": fromChallenge(p),
 	}
-	
+
 	// Handle caching
 	ctx.Header("Vary", "HX-Boosted")
 	if !config.Debug() {
@@ -121,7 +110,7 @@ func problemFunc(ctx *gin.Context) {
 	} else {
 		ctx.Header("Cache-Control", "max-age=600, must-revalidate")
 	}
-	
+
 	tmpl := "problem.html"
 	if ctx.GetHeader("HX-Request") == "true" {
 		tmpl = "problem"
@@ -129,7 +118,7 @@ func problemFunc(ctx *gin.Context) {
 	ctx.HTML(http.StatusOK, tmpl, data)
 }
 
-func problemSetFunc(ctx *gin.Context) {	
+func problemSetFunc(ctx *gin.Context) {
 	// Handle caching
 	ctx.Header("Vary", "HX-Boosted")
 	if !config.Debug() {
@@ -143,7 +132,7 @@ func problemSetFunc(ctx *gin.Context) {
 	if ctx.GetHeader("HX-Request") == "true" {
 		tmpl = "problemTable"
 	}
-	
+
 	pageData := getPageData(ctx, 1)
 
 	ctx.HTML(http.StatusOK, tmpl, pageData)
@@ -164,6 +153,16 @@ func problemsSetPageFunc(ctx *gin.Context) {
 	ctx.HTML(http.StatusOK, "challengeList", pageData)
 }
 
+// Information for a list of challenges, from a paged request
+type ChallengePage struct {
+	Challenges  []data.GetChallengesPaginatedRow `json:"challenges"`
+	HasPrev     bool                             `json:"has_prev"`
+	HasNext     bool                             `json:"has_next"`
+	PrevPage    int64                            `json:"prev_page"`
+	NextPage    int64                            `json:"next_page"`
+	CurrentPage int64                            `json:"current_page"`
+}
+
 func getPageData(ctx *gin.Context, page int64) ChallengePage {
 	repo := data.Repository()
 
@@ -171,7 +170,7 @@ func getPageData(ctx *gin.Context, page int64) ChallengePage {
 	offset := (page - 1) * pageSize
 
 	// Query the paginated challenges.
-	challenges, err := repo.GetChallengesPaginated(ctx, pageSize, offset)
+	challenges_data, err := repo.GetChallengesPaginated(ctx, pageSize, offset)
 	if err != nil {
 		log.Printf("error fetching paginated challenges: %v", err)
 		return ChallengePage{}
@@ -191,7 +190,7 @@ func getPageData(ctx *gin.Context, page int64) ChallengePage {
 
 	// Build the page structure.
 	return ChallengePage{
-		Challenges:  challenges,
+		Challenges:  challenges_data,
 		HasPrev:     hasPrev,
 		HasNext:     hasNext,
 		PrevPage:    page - 1,

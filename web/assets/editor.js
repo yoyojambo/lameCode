@@ -24,10 +24,23 @@ if __name__ == "__main__":
 }
 
 main();
-`
+`,
+		cpp: `#include <iostream>
+
+int main() {
+  std::cout << "Hello, World!" << std::endl;
+  return 0;
+}`,
+		c: `#include <stdio.h>
+
+int main() {
+  // Program logic goes here
+  printf("Hello, World!\\n");
+  return 0;
+}`,
 	};
 
-	// create or re‐create the editor in #code-editor
+	// create or re-create the editor in #code-editor
 	function initMonaco(initialCode) {
 		const editorContainer = document.getElementById('code-editor');
 		if (!editorContainer) {

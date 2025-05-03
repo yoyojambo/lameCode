@@ -292,13 +292,13 @@ type Result struct {
 func RunMultipleTests(code, lang string, challenges []data.ChallengeTest) ([]Result, error) {
 	prog_name, err := createProgram(lang, code)
 	if err != nil {
-		return nil, fmt.Errorf("Error creating C++ program file:\n%v\n", err)
+		return nil, fmt.Errorf("Error creating %s program file:\n%v\n", lang, err)
 	}
 	defer os.Remove(prog_name)
 
 	executable, err := compileProgram(prog_name, lang)
 	if err != nil {
-		return nil, fmt.Errorf("Error compiling C++ program: %v\n", err)
+		return nil, fmt.Errorf("Error compiling %s program: %v\n", lang, err)
 	}
 	defer os.Remove(executable)
 
@@ -310,9 +310,30 @@ func RunMultipleTests(code, lang string, challenges []data.ChallengeTest) ([]Res
 			return results, fmt.Errorf("Error running test #%d: %v", i, err)
 		}
 
+		out_s, expected_s := strings.TrimSpace(out), strings.TrimSpace(c.ExpectedOutput)
+		pass := out_s == expected_s
+
+		// Express differences that fail the test
+		if config.Debug() && !pass {
+			got_b := []byte(out_s)
+			expected_b := []byte(expected_s)
+
+			mismatches := 0
+			for j := 0; j < min(len(got_b), len(expected_b)); j++ {
+				if mismatches > 4 {
+					break
+				}
+				if got_b[j] != expected_b[j] {
+					mismatches++
+					l.Printf("Mismatch byte #%d in test #%d\nGot %q expected %q\n",
+						j, i, got_b[j], expected_b[j])
+				}
+			}
+		}
+
 		r := Result{
 			Name: "Test #" + strconv.Itoa(i),
-			Pass: out == c.ExpectedOutput,
+			Pass: pass,
 		}
 		results = append(results, r)
 	}

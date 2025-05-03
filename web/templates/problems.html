@@ -31,23 +31,30 @@
 {{- /* This is the challengelist template that actually shows challenges, and loads new ones  */ -}}
 
 {{define "challengeList"}}
-  <div>
+  <div class="challengeList">
 	<ul hx-boost="true" hx-target="#main" hx-swap="innerHTML show:#navbar:top" style="list-style: none; padding: 0;">
 	  {{- range .Challenges }}
 	  <li style="margin-bottom: 20px;">
-		<a href="/problem/{{ .ID }}" style="text-decoration: none; color: inherit; display: block; padding: 10px; border: 1px solid transparent; border-radius: 4px; transition: background-color 0.3s;">
-		  <h5 style="margin: 0;"><b>{{ .Title }}</b></h5>
-		  <p style="margin: 5px 0;">
-			{{- if eq .Difficulty 1 }}
-			<span class="difficulty easy">Easy</span>
-			{{ else if eq .Difficulty 2 }}
-			<span class="difficulty medium">Medium</span>
-			{{ else if eq .Difficulty 3 }}
-			<span class="difficulty hard">Hard</span>
-			{{ else }}
-			<span class="difficulty">Not tagged</span>
-			{{- end }}
-		  </p>
+		<a href="/problem/{{ .Challenge.ID }}" style="text-decoration: none; color: inherit; display: block; padding: 10px; border: 1px solid transparent; border-radius: 4px; transition: background-color 0.3s;">
+          {{- /* Add a container for the title and difficulty */ -}}
+          <div class="challenge-info">
+    		  <h5 style="margin: 0;"><b>{{ .Challenge.Title }}</b></h5>
+    		  <p style="margin: 5px 0;">
+    			{{- if eq .Challenge.Difficulty 1 }}
+    			<span class="difficulty easy">Easy</span>
+    			{{ else if eq .Challenge.Difficulty 2 }}
+    			<span class="difficulty medium">Medium</span>
+    			{{ else if eq .Challenge.Difficulty 3 }}
+    			<span class="difficulty hard">Hard</span>
+    			{{ else }}
+    			<span class="difficulty">Not tagged</span>
+    			{{- end }}
+    		  </p>
+          </div>
+          {{- /* Move the test count inside the anchor tag as well, but in a separate container */ -}}
+          <div class="test-count">
+            <p>{{.TestCount}} tests</p>
+          </div>
 		</a>
 	  </li>
 	  {{- else }}

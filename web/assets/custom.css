@@ -47,21 +47,18 @@ body {
     padding: 1rem;
     margin-bottom: 1rem;
 }
-/* ── Links ────────────────────────────────────── */
-a:hover {
-  background-color: #c4c4c4;
-  border-color: #ddd;
-}
 
 /* ── Difficulty badges ───────────────────────── */
 .difficulty {
-  display: inline-block;
-  padding: 0.2rem 0.6rem;
-  border-radius: 4px;
-  color: #fff;
-  font-size: 0.8em;
-  margin-bottom: 0.5rem;
+	display: inline-block;
+	background-color: #aaaaaa;
+	padding: 0.2rem 0.6rem;
+	border-radius: 4px;
+	color: #fff;
+	font-size: 0.8em;
+	margin-bottom: 0.5rem;
 }
+
 .difficulty.easy   { background-color: #28a745; }
 .difficulty.medium { background-color: #ffc107; color: #000; }
 .difficulty.hard   { background-color: #dc3545; }
@@ -167,6 +164,7 @@ body.htmx-request .spinner { display: inline-block; }
   width: 400px;
   border-radius: 4px;
 }
+
 .modal-header { font-weight: bold; margin-bottom: 1rem; }
 .close { float: right; cursor: pointer; font-weight: bold; }
 
@@ -226,4 +224,32 @@ body.htmx-request .spinner { display: inline-block; }
 /* HTMX indicator class */
 .htmx-indicator {
     display: none;
+}
+
+.challengeList a {
+    display: flex !important; /* Make the anchor a flex container */
+    justify-content: space-between; /* Put space between challenge info and test count */
+    align-items: center; /* Vertically align items in the center */
+}
+
+.challenge-info {
+    /* This container will hold the title and difficulty */
+    flex-grow: 1; /* Allow this part to take up available space */
+    margin-right: 10px; /* Add some space between info and test count */
+}
+
+.test-count {
+    /* This container holds the test count */
+    flex-shrink: 0; /* Prevent this from shrinking */
+    text-align: right; /* Align the text to the right */
+    display: flex; /* Use flexbox for centering vertically if needed */
+    align-items: center; /* Vertically center the text within the container */
+}
+
+
+
+/* /\* ── Links ────────────────────────────────────── *\/ */
+.challengeList a:hover {
+  background-color: #c4c4c4;
+  border-color: #ddd;
 }
