@@ -18,11 +18,6 @@ func WasFlagPassed(name string) bool {
 	return found
 }
 
-type Config struct {
-	debug  bool
-	db_url string // Either local (path) or remote (turso)
-}
-
 const (
 	DEFAULT_DOT_ENV        = ".env"        // Default .env location
 	DEFAULT_SQLITE_DB_FILE = "database.db" // Default database location
@@ -53,10 +48,10 @@ var (
 func LoadServerFlags() {
 	flag.StringVar(&db_URL, "db-url", DEFAULT_SQLITE_DB_FILE, db_file_usage)
 	flag.StringVar(&turso_auth, "token", "", auth_token_usage)
-	flag.BoolVar(&create, "create-db", false, create_db_usage)              
-	flag.StringVar(&envFile, "env", DEFAULT_DOT_ENV, env_file_usage)         
+	flag.BoolVar(&create, "create-db", false, create_db_usage)
+	flag.StringVar(&envFile, "env", DEFAULT_DOT_ENV, env_file_usage)
 	flag.BoolVar(&debug, "debug", false, debug_usage)
-	flag.BoolVar(&remote, "remote", false, remote_usage)                    
+	flag.BoolVar(&remote, "remote", false, remote_usage)
 }
 
 func DbUrl() string {

@@ -15,155 +15,107 @@ import (
 
 var l = log.New(os.Stdout, "[judge] ", log.LstdFlags|log.Lmsgprefix)
 
-// checkWasmtime checks if the wasmtime runtime can be found in the current environment
-func lookPath(executable string) (string, error) {
-	path, err := exec.LookPath(executable)
-	return path, err
-}
+var getGoCompiler = sync.OnceValues(
+	func() (string, error) { return exec.LookPath("go") },
+)
 
-// Using sync.OnceValues to basically cache the result, but might be
-// overkill or even slower, idk.
-var getGoCompiler func() (string, error) = sync.OnceValues(
-	func() (string, error) {
-		return exec.LookPath("go")
-	})
+var getTinyGoCompiler = sync.OnceValues(
+	func() (string, error) { return exec.LookPath("tinygo") },
+)
 
-var getGccCompiler func() (string, error) = sync.OnceValues(
-	func() (string, error) {
-		return exec.LookPath("gcc")
-	})
+var getRustCompiler = sync.OnceValues(
+	func() (string, error) { return exec.LookPath("rustc") },
+)
 
-var getGppCompiler func() (string, error) = sync.OnceValues(
-	func() (string, error) {
-		return exec.LookPath("g++")
-	})
+var getEmcc = sync.OnceValues(
+	func() (string, error) { return exec.LookPath("emcc") },
+)
 
-var getWasmtime func() (string, error) = sync.OnceValues(
-	func() (string, error) {
-		return exec.LookPath("wasmtime")
-	})
+var getEmpp = sync.OnceValues(
+	func() (string, error) { return exec.LookPath("em++") },
+)
 
-func callGoCompiler(program string) (executable string, err error) {
-	if b, found := strings.CutSuffix(program, ".go"); found {
-		executable = filepath.Base(b) + ".wasm"
-	} else {
-		err = fmt.Errorf("Expected program to end in .go, but was given %s", program)
+var getWasmtime = sync.OnceValues(
+	func() (string, error) { return exec.LookPath("wasmtime") },
+)
+
+// callGoCompiler builds Go programs using TinyGo (WASI target), falls back to standard Go
+func callGoCompiler(program string) (string, error) {
+	if !strings.HasSuffix(program, ".go") {
+		return "", fmt.Errorf("expected .go, got %s", program)
 	}
-
-	compiler, err := getGoCompiler()
+	exe := filepath.Base(strings.TrimSuffix(program, ".go")) + ".wasm"
+	compiler, err := getTinyGoCompiler()
+	if err == nil {
+		// TinyGo for WASI
+		cmd := exec.Command(compiler, "build", "-o", exe, "-target", "wasi", program)
+		if out, err := cmd.CombinedOutput(); err != nil {
+			return "", fmt.Errorf("tinygo build failed: %v\n%s", err, out)
+		}
+		return exe, nil
+	}
+	// Fallback to standard Go (js/wasm)
+	compiler, err = getGoCompiler()
 	if err != nil {
 		return "", err
 	}
-
-	command_str := fmt.Sprintf("%s build -o %s %s", compiler, executable, program)
-	command := strings.Split(command_str, " ")
-	cmd := exec.Command(command[0], command[1:]...)
-	cmd.Dir = "."
-	cmd.Env = append(cmd.Env, "GOOS=wasip1")
-	cmd.Env = append(cmd.Env, "GOARCH=wasm")
-
-	// Apparently GOCACHE is necessary for go build, so here goes it.
-	// It at least does seem capable of creating the directory itself.
-	cmd.Env = append(cmd.Env, "GOCACHE=/tmp/gocache")
-
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		err = fmt.Errorf("Error running compiler:\nErr=%v\nOutput=%v", err, string(out))
+	cmd := exec.Command(compiler, "build", "-o", exe, program)
+	cmd.Env = append(os.Environ(), "GOOS=wasip1", "GOARCH=wasm")
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return "", fmt.Errorf("go build failed: %v\n%s", err, out)
 	}
-
-	if config.Debug() {
-		l.Println("Ran compiler with", command_str)
-		if len(out) != 0 {
-			l.Printf("Compiler output: %v\n", string(out))
-		}
-		l.Println("Exited compiler with", cmd.ProcessState.ExitCode())
-	}
-
-	return
+	return exe, nil
 }
 
-// callGccCompiler compiles a C program to WASM using Emscripten (assuming it's in the PATH).
-func callGccCompiler(program string) (executable string, err error) {
-	if b, found := strings.CutSuffix(program, ".c"); found {
-		executable = filepath.Base(b) + ".wasm"
-	} else {
-		return "", fmt.Errorf("Expected program to end in .c, but was given %s", program)
+// callRustCompiler builds Rust programs targeting wasm32-wasi
+func callRustCompiler(program string) (string, error) {
+	if !strings.HasSuffix(program, ".rs") {
+		return "", fmt.Errorf("expected .rs, got %s", program)
 	}
-
-	compiler, err := getGccCompiler()
+	exe := filepath.Base(strings.TrimSuffix(program, ".rs")) + ".wasm"
+	compiler, err := getRustCompiler()
 	if err != nil {
-		return "", fmt.Errorf("gcc compiler not found: %w", err)
+		return "", err
 	}
-
-	// Assuming you have Emscripten's gcc wrapper in your PATH, which is common.
-	// Emscripten will handle the WASM compilation.
-	command := []string{
-		compiler,
-		program,
-		"-o", executable,
-		// Add Emscripten specific flags for WASI if needed, e.g., -s WASI=1
-		// For a basic example, the default might work, but for more complex
-		// C programs, you might need specific Emscripten flags.
+	cmd := exec.Command(compiler, "--target=wasm32-wasip1", "-O", "-o", exe, program)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return "", fmt.Errorf("rustc failed: %v\n%s", err, out)
 	}
-
-	cmd := exec.Command(command[0], command[1:]...)
-	cmd.Dir = "."
-	// Emscripten might need specific environment variables set, depending on
-	// your Emscripten installation and configuration.
-
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", fmt.Errorf("Error running GCC compiler:\nErr=%v\nOutput=%v", err, string(out))
-	}
-
-	if config.Debug() {
-		l.Printf("Ran GCC compiler with %v\n", command)
-		if len(out) != 0 {
-			l.Printf("GCC compiler output: %v\n", string(out))
-		}
-	}
-
-	return executable, nil
+	return exe, nil
 }
 
-// callGppCompiler compiles a C++ program to WASM using Emscripten (assuming it's in the PATH).
-func callGppCompiler(program string) (executable string, err error) {
-	if b, found := strings.CutSuffix(program, ".cpp"); found {
-		executable = filepath.Base(b) + ".wasm"
-	} else {
-		return "", fmt.Errorf("Expected program to end in .cpp, but was given %s", program)
+// callGccCompiler uses emcc to compile C to standalone WASM
+func callGccCompiler(program string) (string, error) {
+	if !strings.HasSuffix(program, ".c") {
+		return "", fmt.Errorf("expected .c, got %s", program)
 	}
-
-	compiler, err := getGppCompiler()
+	exe := filepath.Base(strings.TrimSuffix(program, ".c")) + ".wasm"
+	emcc, err := getEmcc()
 	if err != nil {
-		return "", fmt.Errorf("g++ compiler not found: %w", err)
+		return "", err
 	}
-
-	// Assuming you have Emscripten's g++ wrapper in your PATH.
-	command := []string{
-		compiler,
-		program,
-		"-o", executable,
-		// Add Emscripten specific flags for WASI if needed, e.g., -s WASI=1
+	cmd := exec.Command(emcc, program, "-o", exe, "-Oz", "-sSTANDALONE_WASM")
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return "", fmt.Errorf("emcc failed: %v\n%s", err, out)
 	}
+	return exe, nil
+}
 
-	cmd := exec.Command(command[0], command[1:]...)
-	cmd.Dir = "."
-	// Emscripten might need specific environment variables.
-
-	out, err := cmd.CombinedOutput()
+// callGppCompiler uses em++ to compile C++ to standalone WASM
+func callGppCompiler(program string) (string, error) {
+	if !strings.HasSuffix(program, ".cpp") {
+		return "", fmt.Errorf("expected .cpp, got %s", program)
+	}
+	exe := filepath.Base(strings.TrimSuffix(program, ".cpp")) + ".wasm"
+	empp, err := getEmpp()
 	if err != nil {
-		return "", fmt.Errorf("Error running G++ compiler:\nErr=%v\nOutput=%v", err, string(out))
+		return "", err
 	}
-
-	if config.Debug() {
-		l.Printf("Ran G++ compiler with %v\n", command)
-		if len(out) != 0 {
-			l.Printf("G++ compiler output: %v\n", string(out))
-		}
+	cmd := exec.Command(empp, program, "-o", exe, "-Oz", "-sSTANDALONE_WASM")
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return "", fmt.Errorf("em++ failed: %v\n%s", err, out)
 	}
-
-	return executable, nil
+	return exe, nil
 }
 
 // RunProgramWithInput exec's executable, and passes input as its
@@ -216,6 +168,7 @@ func createProgram(lang, code string) (string, error) {
 // compileProgram runs the appropiate scripts to create the
 // executable.  Returns the name of the executable (if created) and
 // errors encountered running the compiler.
+// compileProgram selects the right compiler based on lang
 func compileProgram(code, lang string) (string, error) {
 	switch lang {
 	case "go":
@@ -224,63 +177,13 @@ func compileProgram(code, lang string) (string, error) {
 		return callGccCompiler(code)
 	case "cpp":
 		return callGppCompiler(code)
+	case "rs":
+		return callRustCompiler(code)
 	default:
-		return "", fmt.Errorf("Language compiler not implemented/recognized for language: %s", lang)
+		return "", fmt.Errorf("unsupported language: %s", lang)
 	}
 }
 
-// TODO: Multiple tests per compiled program
-func runGoProgram(code string, input string) (string, error) {
-	prog_name, err := createProgram("go", code)
-	if err != nil {
-		return "", fmt.Errorf("Error creating program:\n%v\n", err)
-	}
-	// Delete after all tests are done (or failed to run)
-	defer os.Remove(prog_name)
-
-	executable, err := callGoCompiler(prog_name)
-	if err != nil {
-		return "", fmt.Errorf("Error compiling: %v\n", err)
-	}
-
-	defer os.Remove(executable)
-
-	return RunWasmProgramWithInput(executable, input)
-}
-
-// runCProgram compiles and runs a C program.
-func runCProgram(code string, input string) (string, error) {
-	prog_name, err := createProgram("c", code)
-	if err != nil {
-		return "", fmt.Errorf("Error creating C program file:\n%v\n", err)
-	}
-	defer os.Remove(prog_name)
-
-	executable, err := compileProgram(prog_name, "c")
-	if err != nil {
-		return "", fmt.Errorf("Error compiling C program: %v\n", err)
-	}
-	defer os.Remove(executable)
-
-	return RunWasmProgramWithInput(executable, input)
-}
-
-// runCppProgram compiles and runs a C++ program.
-func runCppProgram(code string, input string) (string, error) {
-	prog_name, err := createProgram("cpp", code)
-	if err != nil {
-		return "", fmt.Errorf("Error creating C++ program file:\n%v\n", err)
-	}
-	defer os.Remove(prog_name)
-
-	executable, err := compileProgram(prog_name, "cpp")
-	if err != nil {
-		return "", fmt.Errorf("Error compiling C++ program: %v\n", err)
-	}
-	defer os.Remove(executable)
-
-	return RunWasmProgramWithInput(executable, input)
-}
 
 type Result struct {
 	Name       string // Optional
