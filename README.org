@@ -1,9 +1,63 @@
 #+TITLE: LameCode
 #+AUTHOR: Omar Flores
 #+EMAIL: omar533330@gmail.com
+#+OPTIONS: toc:t
 
+* LameCode
 
-* TLDR
-Very basic clone of LeetCode that runs from a single Go binary, and
-hosts data in Turso. The full stack is Go-Gin-Turso-HTMX, chosen for
-funsies and to completely avoid using a frontend framework.
+LameCode is a simple code judging platform written in Go. It compiles and runs code in
+multiple languages inside WebAssembly sandboxes, securely and efficiently, all from a
+lightweight Go backend with HTMX on the frontend. Submissions are stored in a Turso (or
+local SQLite) database.
+
+* ✨ Features
+
+- Compiles and runs code in Go, TinyGo, C, C++, and Rust
+- Executes code in WebAssembly using Wasmtime for isolation
+- Uses local compilation, no external APIs
+- Server-side evaluation, no exposed runtimes
+- Built with Go (Gin) + HTMX, no JS framework
+
+* 🧱 Tech Stack
+
+- *Language*: Go
+- *Backend*: Gin
+- *Frontend*: HTMX + Go templates
+- *Database*: Turso or SQLite
+- *Execution sandbox*: WebAssembly via Wasmtime
+
+* 🔧 Runtime Requirements
+
+To build and run submissions locally, the following toolchains are expected in the system:
+
+- [[https://go.dev/][Go]] or [[https://tinygo.org/][TinyGo]] (for Go submissions)
+- [[https://emscripten.org/][Emscripten]] (for C/C++ to WASM)
+- [[https://www.rust-lang.org/tools/install][Rust]] + wasm32 target
+- [[https://wasmtime.dev/][Wasmtime runtime]]
+
+Optional: `clang` for cross-compilation, `make` for build automation during development.
+
+* 🚧 Roadmap
+
+- [ ] Add time and memory limits per submission
+- [ ] Rate limiting and abuse prevention
+- [ ] Add user authentication and problem progress tracking
+- [ ] Add leaderboard and performance metrics
+- [ ] Language support: JavaScript, Python, Zig, Lua
+- [ ] Exposable API (endpoints offering both HTML or JSON)
+
+* 📁 Directory Structure (WIP)
+
+This may change, but general layout is:
+
+#+begin_example
+cmd/           ; main entry point
+runtime/       ; WASM compilation and execution logic
+problems/      ; problem definitions and storage
+templates/     ; HTML templates with HTMX
+platform/      ; internal platform utilities (db, config, etc.)
+#+end_example
+
+* 📝 Status
+
+The project is in active development and not yet production-ready. Contributions and feedback are welcome.
