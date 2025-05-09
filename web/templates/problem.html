@@ -43,11 +43,10 @@
 		<div class="editor-container">
 		  <div class="editor-top-bar">
 			<select id="language-select" name="language">
-			  <option value="go">Go</option>
-			  <option value="python">Python</option>
-			  <option value="javascript">JavaScript</option>
-			  <option value="cpp">C++</option>
-			  <option value="c">C</option>
+			  {{- range .LanguageOptions}}
+			  {{- /* Show only currently available languages */ -}}
+			  <option value={{.Lang}}>{{.PrettyName}} ({{.Compiler}})</option>
+			  {{- end}}
 			</select>
 			<button id="reset-button" type="button">Reset</button>
 		  </div>
@@ -107,15 +106,15 @@
     </tr>
   </thead>
   <tbody>
-    {{range .}}
+    {{- range .}}
     <tr>
       <td>{{.Name}}</td>
       <td>
-        {{if .Pass}}
+        {{- if .Pass}}
           <span class="pass-status pass">Pass</span>
         {{else}}
           <span class="pass-status fail">Fail</span>
-        {{end}}
+        {{- end}}
       </td>
       <td>{{.Runtime}}</td>
       <td>{{.MaxMemUsed}}</td>
@@ -124,7 +123,7 @@
     <tr>
       <td colspan="4" class="no-results">No results to display.</td>
     </tr>
-    {{end}}
+    {{- end}}
   </tbody>
 </table>
 
@@ -133,4 +132,9 @@
   <div class="double-bounce2"></div>
 </div>
 {{end -}}
+
+{{- define "compiler-message"}}
+<p>Compiler Error! See below:</p>
+<pre>{{.Message}}</pre>
+{{- end}}
 

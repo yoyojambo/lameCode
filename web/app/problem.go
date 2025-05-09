@@ -1,12 +1,14 @@
 package app
 
 import (
-	"html/template"
 	"lameCode/platform/config"
 	"lameCode/platform/data"
+	"lameCode/platform/judge"
+	
 	"log"
-	"net/http"
 	"strconv"
+	"net/http"
+	"html/template"
 
 	"github.com/gin-gonic/gin"
 
@@ -48,7 +50,7 @@ func fromUsername(ctx *gin.Context, username string) User {
 
 // Local representation of a challenge.
 // Necessary so Gin renders the HTML description correctly.
-type Challenge struct {
+type ApiChallenge struct {
 	Id          int64
 	Title       string
 	Difficulty  int64
@@ -72,8 +74,8 @@ func mdToHTML(md string) string {
 	return string(markdown.Render(doc, renderer))
 }
 
-func fromChallenge(challenge data.Challenge) Challenge {
-	return Challenge{
+func fromChallenge(challenge data.Challenge) ApiChallenge {
+	return ApiChallenge{
 		Id:    challenge.ID,
 		Title: challenge.Title,
 		// Essentially a cast :/
@@ -101,6 +103,8 @@ func problemFunc(ctx *gin.Context) {
 
 		// fromChallenge creates an object with the unescaped Descrtiption
 		"Problem": fromChallenge(p),
+
+		"LanguageOptions": judge.LanguageOptions(),
 	}
 
 	// Handle caching

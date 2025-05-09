@@ -1,12 +1,13 @@
 package app
 
 import (
+	"context"
 	"lameCode/platform/data"
 	"lameCode/platform/judge"
 	"log"
 	"net/http"
 	"strconv"
-	"context"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -58,6 +59,19 @@ func testSubmission(ctx *gin.Context) {
 	}
 
 	results, err := judge.RunMultipleTests(submission.Code, submission.Language, tests)
+	// Check if this is compiler error (bad code) or internal error
+	if err != nil {
+		// Compilation error case (user error message)
+		if strings.HasPrefix(err.Error(), "Error compiling") {
+			nLine := strings.Index(err.Error(), "\n")
+			errmsg := err.Error()[nLine+1:]
+			ctx.HTML(http.StatusOK, "compiler-message", gin.H{"Message": errmsg})
+			return
+		}
+		// Error in any other phase
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+		log.Println("Error running tests for challenge in test:", err)
+	}
 	
 	ctx.HTML(http.StatusOK, "result-table", results)
 }

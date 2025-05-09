@@ -25,19 +25,18 @@ if __name__ == "__main__":
 
 main();
 `,
-		cpp: `#include <iostream>
-
-int main() {
-  std::cout << "Hello, World!" << std::endl;
+		cpp: `int main() {
+  // your C++ solution here
   return 0;
 }`,
-		c: `#include <stdio.h>
-
-int main() {
-  // Program logic goes here
-  printf("Hello, World!\\n");
+		c: `int main() {
+  // your C solution here
   return 0;
 }`,
+
+		rust: `fn main() {
+    // your Rust solution here
+}`
 	};
 
 	// create or re-create the editor in #code-editor
