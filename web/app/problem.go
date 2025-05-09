@@ -4,7 +4,8 @@ import (
 	"lameCode/platform/config"
 	"lameCode/platform/data"
 	"lameCode/platform/judge"
-	
+
+	"os"
 	"log"
 	"strconv"
 	"net/http"
@@ -16,6 +17,8 @@ import (
 	"github.com/gomarkdown/markdown/html"
 	"github.com/gomarkdown/markdown/parser"
 )
+
+var l = log.New(os.Stdout, "[app] ", log.LstdFlags|log.Lmsgprefix)
 
 func LoadProblemHandlers(r *gin.Engine) {
 	r.GET("/", problemSetFunc)
@@ -137,7 +140,11 @@ func problemSetFunc(ctx *gin.Context) {
 		tmpl = "problemTable"
 	}
 
-	pageData := getPageData(ctx, 1)
+	pageData, err := getPageData(ctx, 1)
+	if err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 
 	ctx.HTML(http.StatusOK, tmpl, pageData)
 }
@@ -151,7 +158,12 @@ func problemsSetPageFunc(ctx *gin.Context) {
 		page = 1
 	}
 
-	pageData := getPageData(ctx, page)
+	pageData, err := getPageData(ctx, page)
+	if err != nil {
+		l.Printf("Error generating page of problems: %v", err)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 
 	// Render the partial template for HTMX.
 	ctx.HTML(http.StatusOK, "challengeList", pageData)
@@ -167,7 +179,7 @@ type ChallengePage struct {
 	CurrentPage int64                            `json:"current_page"`
 }
 
-func getPageData(ctx *gin.Context, page int64) ChallengePage {
+func getPageData(ctx *gin.Context, page int64) (ChallengePage, error) {
 	repo := data.Repository()
 
 	const pageSize = 30
@@ -176,16 +188,15 @@ func getPageData(ctx *gin.Context, page int64) ChallengePage {
 	// Query the paginated challenges.
 	challenges_data, err := repo.GetChallengesPaginated(ctx, pageSize, offset)
 	if err != nil {
-		log.Printf("error fetching paginated challenges: %v", err)
-		return ChallengePage{}
+		l.Printf("error fetching paginated challenges: %v", err)
+		return ChallengePage{}, err
 	}
 
 	// Optionally, retrieve the total count to determine pagination links.
 	countRow, err := repo.CountChallenges(ctx)
 	if err != nil {
-		log.Printf("error counting challenges: %v", err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
-		return ChallengePage{}
+		l.Printf("error counting challenges: %v", err)
+		return ChallengePage{}, err
 	}
 
 	// Determine if previous and next pages exist.
@@ -200,5 +211,5 @@ func getPageData(ctx *gin.Context, page int64) ChallengePage {
 		PrevPage:    page - 1,
 		NextPage:    page + 1,
 		CurrentPage: page,
-	}
+	}, nil
 }

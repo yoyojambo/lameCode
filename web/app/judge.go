@@ -4,7 +4,6 @@ import (
 	"context"
 	"lameCode/platform/data"
 	"lameCode/platform/judge"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -29,7 +28,7 @@ func printSubmission(ctx *gin.Context) {
 	var submission Submission
 	if err := ctx.ShouldBind(&submission); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
-		log.Println(err)
+		l.Println(err)
 		return
 	}
 
@@ -40,13 +39,13 @@ func testSubmission(ctx *gin.Context) {
 	challengeId, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
-		log.Println("Error parsing challenge id in /test:", err)
+		l.Println("Error parsing challenge id in /test:", err)
 	}
 
 	var submission Submission
 	if err := ctx.ShouldBind(&submission); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
-		log.Println(err)
+		l.Println(err)
 		return
 	}
 
@@ -55,7 +54,7 @@ func testSubmission(ctx *gin.Context) {
 	tests, err := q.GetTestsForChallenge(testCtx, challengeId)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError)
-		log.Println("Error getting tests for challenge in test:", err)
+		l.Println("Error getting tests for challenge in test:", err)
 	}
 
 	results, err := judge.RunMultipleTests(submission.Code, submission.Language, tests)
@@ -70,7 +69,7 @@ func testSubmission(ctx *gin.Context) {
 		}
 		// Error in any other phase
 		ctx.AbortWithStatus(http.StatusInternalServerError)
-		log.Println("Error running tests for challenge in test:", err)
+		l.Println("Error running tests for challenge in test:", err)
 	}
 	
 	ctx.HTML(http.StatusOK, "result-table", results)
