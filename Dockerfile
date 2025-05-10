@@ -1,4 +1,4 @@
-FROM golang:1.23
+FROM golang:1.24
 
 WORKDIR /usr/src/app
 
@@ -11,6 +11,8 @@ COPY ./web/ ./web/
 RUN go build -v -o /usr/local/bin/app ./cmd/server/
 
 ARG DB_URL
+ENV DB_URL=$DB_URL
 ARG DB_TOKEN
+ENV DB_TOKEN=$DB_TOKEN
 
-CMD app --remote --db-url=$DB_URL --token=$DB_TOKEN
+CMD app --remote --install-wasmer --db-url=$DB_URL --token=$DB_TOKEN

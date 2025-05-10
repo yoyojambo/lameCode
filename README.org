@@ -31,7 +31,7 @@ To build and run submissions locally, the following toolchains are expected in t
 - [[https://go.dev/][Go]] or [[https://tinygo.org/][TinyGo]] (for Go submissions)
 - [[https://emscripten.org/][Emscripten]] (for C/C++ to WASM)
 - [[https://www.rust-lang.org/tools/install][Rust]] + wasm32 target
-- [[https://wasmtime.dev/][Wasmtime runtime]]
+- [[https://wasmtime.dev/][Wasmtime]] or [[https://wasmer.io/][Wasmer]] (though it can install wasmer with the `--install-wasmer` flag)
 
 * 🚧 Roadmap
 

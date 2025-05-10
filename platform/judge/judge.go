@@ -140,8 +140,25 @@ func callGppCompiler(program string) (string, error) {
 	return exe, nil
 }
 
+const installWasmer_cmd = "curl https://get.wasmer.io -sSfL | sh"
+const wasmerDir = "/tmp/wasmer"
+
+var installWasmerOnce sync.Once
+// goroutine to install wasmer
+func installWasmer() {
+	cmd := exec.Command("sh", "-c", installWasmer_cmd)
+	// Don't install in $HOME, but /tmp
+	cmd.Env = append(cmd.Env, "WASMER_DIR=" + wasmerDir, "WASMER_INSTALL_LOG=quiet")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		l.Printf("Error running wasmer installer: %v\n", err)
+	}
+	l.Println("Wasmer installer output:\n", string(out))
+}
+
 // Checks what (if any) wasm runtime is present in the system,
 // and creates the appropiate command.
+// TODO: Maybe do this proactively? Why wait for first submission?
 func resolveWasmRuntime(executable string) (*exec.Cmd, error) {
 	// Check wasmtime is there
 	runtime, err := exec.LookPath("wasmtime")
@@ -159,6 +176,21 @@ func resolveWasmRuntime(executable string) (*exec.Cmd, error) {
 		l.Printf("wasmer runtime not found: %v\n", err)		
 	}
 
+	// Check for self-installed wasmer
+	// Or begin installation
+	if config.InstallWasmer() {
+		fullPath := wasmerDir + "/bin/wasmer"
+		_, err := exec.LookPath(fullPath)
+		if err == nil { // Already installed
+			l.Println("Using self-installed wasmer")
+			return exec.Command(fullPath, "run", executable), nil
+		} else {
+			// Only ever call once the installing of wasmer
+			installWasmerOnce.Do(func() { go installWasmer() })
+			return nil, fmt.Errorf("Installing wasmer")
+		}
+	}
+
 	// No WASM runtime found
 	return nil, fmt.Errorf("No WASM runtime found!")
 }
@@ -169,8 +201,9 @@ func resolveWasmRuntime(executable string) (*exec.Cmd, error) {
 func RunWasmProgramWithInput(executable, input string) (string, error) {
 	// Get command depending of available wasm runtime
 	cmd, err := resolveWasmRuntime(executable)
-	if cmd == nil {
-		return "", fmt.Errorf("No WASM runtime found!")
+	if err != nil {
+		l.Println("WASM runtime not resolved")
+		return "", err
 	}
 
 	cmd.Stdin = strings.NewReader(input)

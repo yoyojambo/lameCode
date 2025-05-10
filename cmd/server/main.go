@@ -9,23 +9,24 @@ import (
 	"lameCode/platform/data"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/pprof"
 )
 
 func main() {
 	config.LoadServerFlags()
 	flag.Parse()
+	r := gin.Default()
 
 	if config.Debug() {
 		data.DB().Ping()
+		pprof.Register(r)
 	} else {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	r := gin.Default()
 	loadRoutes(r) // router.go
 
 	port := "3000" // Default port
-
 	// Check for override of port
 	if p := os.Getenv("PORT"); p != "" {
 		port = p
