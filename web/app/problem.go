@@ -4,12 +4,13 @@ import (
 	"lameCode/platform/config"
 	"lameCode/platform/data"
 	"lameCode/platform/judge"
+	"strings"
 
-	"os"
-	"log"
-	"strconv"
-	"net/http"
 	"html/template"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -77,7 +78,21 @@ func mdToHTML(md string) string {
 	return string(markdown.Render(doc, renderer))
 }
 
+// If the Markdown in Description field begins with "# " indicating a h1
+// title, it will the text in that line the Title field.
+func tryBetterTitle(challenge *data.Challenge) {
+	challenge.Description = strings.TrimSpace(challenge.Description)
+
+	// Assume it is starting with a title, so assign it
+	if challenge.Description[0:2] == "# " {
+		tIdx := strings.Index(challenge.Description, "\n")
+		challenge.Title = challenge.Description[2:tIdx] // Title is the part after "# " in Markdown
+		challenge.Description = challenge.Description[tIdx+1:]
+	}
+}
+
 func fromChallenge(challenge data.Challenge) ApiChallenge {
+	
 	return ApiChallenge{
 		Id:    challenge.ID,
 		Title: challenge.Title,
@@ -99,6 +114,8 @@ func problemFunc(ctx *gin.Context) {
 		ctx.AbortWithError(500, err)
 	}
 
+	tryBetterTitle(&p)
+	
 	data := gin.H{
 		"User": User{
 			LoggedIn: false,
@@ -190,6 +207,11 @@ func getPageData(ctx *gin.Context, page int64) (ChallengePage, error) {
 	if err != nil {
 		l.Printf("error fetching paginated challenges: %v", err)
 		return ChallengePage{}, err
+	}
+
+	// Get better titles if available
+	for i, _ := range challenges_data {
+		tryBetterTitle(&challenges_data[i].Challenge)
 	}
 
 	// Optionally, retrieve the total count to determine pagination links.

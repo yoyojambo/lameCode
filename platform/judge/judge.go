@@ -186,7 +186,10 @@ func resolveWasmRuntime(executable string) (*exec.Cmd, error) {
 			return exec.Command(fullPath, "run", executable), nil
 		} else {
 			// Only ever call once the installing of wasmer
-			installWasmerOnce.Do(func() { go installWasmer() })
+			installWasmerOnce.Do(func() {
+				go installWasmer()
+				l.Println("Running wasmer install script")
+			})
 			return nil, fmt.Errorf("Installing wasmer")
 		}
 	}
