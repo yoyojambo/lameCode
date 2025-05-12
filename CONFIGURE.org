@@ -1,0 +1,110 @@
+#+TITLE: Configuration Guide for LameCode
+#+AUTHOR: Omar Flores
+
+* Overview
+LameCode can be configured using a combination of:
+1. Command-line flags
+2. Environment variables (via `.env` files or shell)
+3. Defaults embedded in the binary
+
+Flags take precedence over environment variables, which in turn override hardcoded defaults.
+
+* Flag Reference and Behavior
+
+** --db
+Sets the path to the SQLite or remote Turso database.
+
+- Local:
+  #+begin_src shell
+  ./lamecode-server --db database.db
+  #+end_src
+
+- Remote:
+  #+begin_src shell
+  ./lamecode-server --db "libsql://your-db.turso.io" --remote
+  #+end_src
+
+** --create
+Attempts to apply the schema. If the DB already exists or fails, the app continues.
+
+#+begin_src shell
+./lamecode-server --create
+#+end_src
+
+** --debug
+Enables verbose output for logs and errors.
+
+#+begin_src shell
+./lamecode-server --debug
+#+end_src
+
+** --remote
+Marks the database URL as remote (Turso). Necessary when using libsql:// URLs.
+
+#+begin_src shell
+./lamecode-server --remote --db "libsql://..."
+#+end_src
+
+** --auth-token
+Sets the Turso auth token manually. Preferred method is via env var:
+
+- Recommended:
+  #+begin_src shell
+  export TURSO_AUTH=your_token
+  #+end_src
+
+- Legacy/testing:
+  #+begin_src shell
+  ./lamecode-server --auth-token your_token
+  #+end_src
+
+** --install-wasmer
+Attempts to install Wasmer runtime using the official install script.
+
+#+begin_src shell
+./lamecode-server --install-wasmer
+#+end_src
+
+** --env
+Sets a custom .env file for environment variable overrides.
+
+#+begin_src shell
+./lamecode-server --env myconfig.env
+#+end_src
+
+* Environment Variables
+These are auto-loaded if declared in the OS or a `.env` file.
+
+| Variable       | Description                     |
+|----------------+---------------------------------|
+| DB_URL         | Path or URL for DB connection   |
+| TURSO_AUTH     | Turso auth token                |
+| DEBUG          | Enables debug mode              |
+
+* Precedence Order
+1. Command-line flags
+2. Environment variables (explicit file or exported)
+3. Built-in defaults:
+   - DB file: ~database.db~
+   - Env file: ~.env~
+   - Debug: ~false~
+
+* Example Setup
+#+begin_src shell
+export TURSO_AUTH=mytoken
+./lamecode-server --db "libsql://..." --remote --create
+#+end_src
+
+Or via a `.env` file:
+
+#+begin_src dotenv
+DB_URL=libsql://your-db.turso.io
+TURSO_AUTH=mytoken
+DEBUG=true
+#+end_src
+
+Then run:
+
+#+begin_src shell
+./lamecode-server --env .env --create
+#+end_src

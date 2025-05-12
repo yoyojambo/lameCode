@@ -1,0 +1,87 @@
+#+TITLE: Installing LameCode
+#+AUTHOR: Omar Flores
+
+* Base Installation (Local SQLite)
+This setup uses a local SQLite database and doesn't require any environment config.
+
+** Requirements
+- Go 1.21+
+- Git
+
+** Steps
+Clone the repository and build the server:
+
+#+begin_src shell
+git clone https://github.com/yoyojambo/lameCode.git
+cd lameCode
+go build -o lamecode-server ./cmd
+#+end_src
+
+Run the server with default options:
+
+#+begin_src shell
+./lamecode-server --create
+#+end_src
+
+This creates a local ~database.db~ and applies the schema if needed.
+
+* Enable Debug Mode
+Prints detailed logs while the server is running:
+
+#+begin_src shell
+./lamecode-server --create --debug
+#+end_src
+
+* Use a Remote Turso Database
+To connect to a remote Turso instance:
+
+#+begin_src shell
+./lamecode-server --create --remote --db "libsql://your-db.turso.io"
+#+end_src
+
+* Provide Auth Token for Turso (via env var)
+Set the token securely before launching:
+
+#+begin_src shell
+export TURSO_AUTH=your_token_here
+./lamecode-server --create --remote --db "libsql://your-db.turso.io"
+#+end_src
+
+Use the flag only for testing (not recommended):
+
+#+begin_src shell
+./lamecode-server --remote --db "libsql://your-db.turso.io" --auth-token "your_token_here"
+#+end_src
+
+* Install WASM Runtime (Wasmer)
+To enable WebAssembly code execution:
+
+#+begin_src shell
+./lamecode-server --install-wasmer
+#+end_src
+
+This downloads Wasmer if it's not available in your environment.
+
+* Use a Custom Environment File
+Configuration can be centralized in a `.env` file:
+
+#+begin_src shell
+./lamecode-server --env myconfig.env
+#+end_src
+
+** Sample ~myconfig.env~
+#+begin_src dotenv
+DB_URL=libsql://your-db.turso.io
+TURSO_AUTH=your_token_here
+DEBUG=true
+#+end_src
+
+* Summary
+| Use Case         | Command Example                                |
+|------------------+------------------------------------------------|
+| Local DB         | ./lamecode-server --create                     |
+| Debug Mode       | ./lamecode-server --create --debug             |
+| Remote DB        | ./lamecode-server --remote --db "libsql://..." |
+| Auth Token (env) | export TURSO_AUTH=... && ./lamecode-server ... |
+| Install Wasmer   | ./lamecode-server --install-wasmer             |
+| Custom Env File  | ./lamecode-server --env myconfig.env           |
