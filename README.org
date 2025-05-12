@@ -8,7 +8,7 @@ multiple languages inside WebAssembly sandboxes, securely and efficiently, all f
 lightweight Go backend with HTMX on the frontend. Submissions are stored in a Turso (or
 local SQLite) database.
 
-* ✨ Features
+* Features
 
 - Compiles and runs code in Go, TinyGo, C, C++, and Rust
 - Executes code in WebAssembly using Wasmtime for isolation
@@ -16,7 +16,7 @@ local SQLite) database.
 - Server-side evaluation, no exposed runtimes
 - Built with Go (Gin) + HTMX, no JS framework
 
-* 🧱 Tech Stack
+* Tech Stack
 
 - *Language*: Go
 - *Backend*: Gin
@@ -24,7 +24,7 @@ local SQLite) database.
 - *Database*: Turso or SQLite
 - *Execution sandbox*: WebAssembly via Wasmtime
 
-* 🔧 Runtime Requirements
+* Runtime Requirements
 
 To build and run submissions locally, the following toolchains are expected in the system:
 
@@ -33,7 +33,7 @@ To build and run submissions locally, the following toolchains are expected in t
 - [[https://www.rust-lang.org/tools/install][Rust]] + wasm32 target
 - [[https://wasmtime.dev/][Wasmtime]] or [[https://wasmer.io/][Wasmer]] (though it can install wasmer with the ~--install-wasmer~ flag)
 
-* 🚧 Roadmap
+* Roadmap
 
 - [ ] Add time and memory limits per submission
 - [ ] Rate limiting and abuse prevention
@@ -46,6 +46,6 @@ To build and run submissions locally, the following toolchains are expected in t
 - [ ] Multiple sandbox options (besides WASM)
 - [ ] Add my own sample of code problems
 
-* 📝 Status
+* Status
 
 The project is in active development and not yet production-ready. Contributions and feedback are welcome.
