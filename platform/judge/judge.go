@@ -147,7 +147,7 @@ var installWasmerOnce sync.Once
 // goroutine to install wasmer
 func installWasmer() {
 	cmd := exec.Command("sh", "-c", installWasmer_cmd)
-	// Don't install in $HOME, but /tmp
+	// Don't install in $HOME, but /tmp, and don't crate full verbose logs
 	cmd.Env = append(cmd.Env, "WASMER_DIR=" + wasmerDir, "WASMER_INSTALL_LOG=quiet")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -164,16 +164,19 @@ func resolveWasmRuntime(executable string) (*exec.Cmd, error) {
 	runtime, err := exec.LookPath("wasmtime")
 	if err == nil {
 		return exec.Command(runtime, executable), nil
-	} else if config.Debug() {
-		l.Printf("wasmtime runtime not found: %v\n", err)		
 	}
 
 	// Check if wasmer is there
 	runtime, err = exec.LookPath("wasmer")
 	if err == nil {
 		return exec.Command(runtime, "run", executable), nil
-	} else if config.Debug() {
-		l.Printf("wasmer runtime not found: %v\n", err)		
+	}
+
+	// Check if iwasm is there
+	// this is the one that is included with the Docker image
+	runtime, err = exec.LookPath("iwasm")
+	if err == nil {
+		return exec.Command(runtime, executable), nil
 	}
 
 	// Check for self-installed wasmer
