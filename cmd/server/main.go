@@ -9,8 +9,9 @@ import (
 	"lameCode/platform/data"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gin-contrib/pprof"
 )
+
+var r *gin.Engine
 
 func main() {
 	config.LoadServerFlags()
@@ -19,7 +20,6 @@ func main() {
 
 	if config.Debug() {
 		data.DB().Ping()
-		pprof.Register(r)
 	} else {
 		gin.SetMode(gin.ReleaseMode)
 	}
