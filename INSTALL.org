@@ -14,7 +14,7 @@ Clone the repository and build the server:
 #+begin_src shell
 git clone https://github.com/yoyojambo/lameCode.git
 cd lameCode
-go build -o lamecode-server ./cmd
+go build -o lamecode-server ./cmd/server/
 #+end_src
 
 Run the server with default options:
@@ -36,7 +36,7 @@ Prints detailed logs while the server is running:
 To connect to a remote Turso instance:
 
 #+begin_src shell
-./lamecode-server --create --remote --db "libsql://your-db.turso.io"
+./lamecode-server --create --remote --db-url "libsql://your-db.turso.io"
 #+end_src
 
 * Provide Auth Token for Turso (via env var)
@@ -44,17 +44,17 @@ Set the token securely before launching:
 
 #+begin_src shell
 export TURSO_AUTH=your_token_here
-./lamecode-server --create --remote --db "libsql://your-db.turso.io"
+./lamecode-server --create --remote --db-url "libsql://your-db.turso.io"
 #+end_src
 
 Use the flag only for testing (not recommended):
 
 #+begin_src shell
-./lamecode-server --remote --db "libsql://your-db.turso.io" --auth-token "your_token_here"
+./lamecode-server --remote --db-url "libsql://your-db.turso.io" --db-token "your_token_here"
 #+end_src
 
 * Install WASM Runtime (Wasmer)
-To enable WebAssembly code execution:
+Lamecode currently works with wasmtime, wasmer, and iwasm. But if none is available, you can use:
 
 #+begin_src shell
 ./lamecode-server --install-wasmer
