@@ -67,3 +67,7 @@ func LocalDB() bool {
 func InstallWasmer() bool {
 	return install_wasmer
 }
+
+func ApplySchema() bool {
+	return create
+}

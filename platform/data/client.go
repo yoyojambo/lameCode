@@ -65,6 +65,11 @@ var loadDB = sync.OnceValue(func() *sql.DB {
 
 	l.Println("Initialized SQL conn to", config.DbUrl())
 
+	if config.ApplySchema() {
+		l.Println("Applying schema...")
+		LoadSchema(db)
+	}
+
 	return db
 })
 
