@@ -76,19 +76,22 @@ func (q *Queries) GetChallenges(ctx context.Context) ([]Challenge, error) {
 }
 
 const getChallengesPaginated = `-- name: GetChallengesPaginated :many
-SELECT challenges.id, challenges.title, challenges.description, challenges.difficulty, challenges.created_at, challenges.updated_at, count(ch_tests.id) as test_count FROM challenges
-INNER JOIN challenge_tests as ch_tests ON ch_tests.challenge_id = challenges.id
-GROUP BY
-	  challenges.id
+SELECT challenges.id, challenges.title, challenges.description, challenges.difficulty, challenges.created_at, challenges.updated_at, IFNULL(ch_t.test_count, 0) AS test_count FROM challenges
+LEFT JOIN (
+     SELECT count(*) as test_count
+     FROM challenge_tests
+     GROUP BY challenge_id
+     ORDER BY
+     test_count DESC
+) AS ch_t
 ORDER BY
-	  test_count DESC,
-	  title ASC
+     test_count DESC
 LIMIT ? OFFSET ?
 `
 
 type GetChallengesPaginatedRow struct {
-	Challenge Challenge `json:"challenge"`
-	TestCount int64     `json:"test_count"`
+	Challenge Challenge   `json:"challenge"`
+	TestCount interface{} `json:"test_count"`
 }
 
 func (q *Queries) GetChallengesPaginated(ctx context.Context, limit int64, offset int64) ([]GetChallengesPaginatedRow, error) {

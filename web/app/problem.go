@@ -183,6 +183,9 @@ func problemsSetPageFunc(ctx *gin.Context) {
 	}
 
 	// Render the partial template for HTMX.
+	if len(pageData.Challenges) == 0 {
+		l.Println("Not showing any challenges")
+	}
 	ctx.HTML(http.StatusOK, "challengeList", pageData)
 }
 
@@ -208,9 +211,12 @@ func getPageData(ctx *gin.Context, page int64) (ChallengePage, error) {
 		l.Printf("error fetching paginated challenges: %v", err)
 		return ChallengePage{}, err
 	}
+	if len(challenges_data) == 0 {
+		l.Println("No challenges found...")
+	}
 
 	// Get better titles if available
-	for i, _ := range challenges_data {
+	for i := range challenges_data {
 		tryBetterTitle(&challenges_data[i].Challenge)
 	}
 
@@ -219,6 +225,9 @@ func getPageData(ctx *gin.Context, page int64) (ChallengePage, error) {
 	if err != nil {
 		l.Printf("error counting challenges: %v", err)
 		return ChallengePage{}, err
+	}
+	if config.Debug() {
+		l.Printf("%d challenges available\n", countRow)
 	}
 
 	// Determine if previous and next pages exist.
