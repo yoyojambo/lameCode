@@ -22,7 +22,7 @@ func (q *Queries) CountChallenges(ctx context.Context) (int64, error) {
 }
 
 const getChallenge = `-- name: GetChallenge :one
-SELECT id, title, description, difficulty, created_at, updated_at FROM challenges
+SELECT id, title, description, difficulty, test_count, created_at, updated_at FROM challenges
 WHERE id = ?
 `
 
@@ -34,6 +34,7 @@ func (q *Queries) GetChallenge(ctx context.Context, id int64) (Challenge, error)
 		&i.Title,
 		&i.Description,
 		&i.Difficulty,
+		&i.TestCount,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -41,7 +42,7 @@ func (q *Queries) GetChallenge(ctx context.Context, id int64) (Challenge, error)
 }
 
 const getChallenges = `-- name: GetChallenges :many
-SELECT id, title, description, difficulty, created_at, updated_at FROM challenges
+SELECT id, title, description, difficulty, test_count, created_at, updated_at FROM challenges
 ORDER BY created_at DESC
 `
 
@@ -59,6 +60,7 @@ func (q *Queries) GetChallenges(ctx context.Context) ([]Challenge, error) {
 			&i.Title,
 			&i.Description,
 			&i.Difficulty,
+			&i.TestCount,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -76,41 +78,29 @@ func (q *Queries) GetChallenges(ctx context.Context) ([]Challenge, error) {
 }
 
 const getChallengesPaginated = `-- name: GetChallengesPaginated :many
-SELECT challenges.id, challenges.title, challenges.description, challenges.difficulty, challenges.created_at, challenges.updated_at, IFNULL(ch_t.test_count, 0) AS test_count FROM challenges
-LEFT JOIN (
-     SELECT count(*) as test_count
-     FROM challenge_tests
-     GROUP BY challenge_id
-     ORDER BY
-     test_count DESC
-) AS ch_t
+SELECT id, title, description, difficulty, test_count, created_at, updated_at FROM challenges
 ORDER BY
-     test_count DESC
+	  test_count DESC
 LIMIT ? OFFSET ?
 `
 
-type GetChallengesPaginatedRow struct {
-	Challenge Challenge   `json:"challenge"`
-	TestCount interface{} `json:"test_count"`
-}
-
-func (q *Queries) GetChallengesPaginated(ctx context.Context, limit int64, offset int64) ([]GetChallengesPaginatedRow, error) {
+func (q *Queries) GetChallengesPaginated(ctx context.Context, limit int64, offset int64) ([]Challenge, error) {
 	rows, err := q.db.QueryContext(ctx, getChallengesPaginated, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetChallengesPaginatedRow
+	var items []Challenge
 	for rows.Next() {
-		var i GetChallengesPaginatedRow
+		var i Challenge
 		if err := rows.Scan(
-			&i.Challenge.ID,
-			&i.Challenge.Title,
-			&i.Challenge.Description,
-			&i.Challenge.Difficulty,
-			&i.Challenge.CreatedAt,
-			&i.Challenge.UpdatedAt,
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.Difficulty,
 			&i.TestCount,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}

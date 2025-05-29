@@ -34,16 +34,9 @@ ORDER BY created_at DESC;
 SELECT COUNT(*) AS count FROM challenges;
 
 -- name: GetChallengesPaginated :many
-SELECT sqlc.embed(challenges), IFNULL(ch_t.test_count, 0) AS test_count FROM challenges
-LEFT JOIN (
-     SELECT count(*) as test_count
-     FROM challenge_tests
-     GROUP BY challenge_id
-     ORDER BY
-     test_count DESC
-) AS ch_t
+SELECT * FROM challenges
 ORDER BY
-     test_count DESC
+	  test_count DESC
 LIMIT ? OFFSET ?;
 
 -- name: NewChallengeTest :one

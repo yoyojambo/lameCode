@@ -92,7 +92,7 @@ func tryBetterTitle(challenge *data.Challenge) {
 }
 
 func fromChallenge(challenge data.Challenge) ApiChallenge {
-	
+
 	return ApiChallenge{
 		Id:    challenge.ID,
 		Title: challenge.Title,
@@ -115,7 +115,7 @@ func problemFunc(ctx *gin.Context) {
 	}
 
 	tryBetterTitle(&p)
-	
+
 	data := gin.H{
 		"User": User{
 			LoggedIn: false,
@@ -191,12 +191,12 @@ func problemsSetPageFunc(ctx *gin.Context) {
 
 // Information for a list of challenges, from a paged request
 type ChallengePage struct {
-	Challenges  []data.GetChallengesPaginatedRow `json:"challenges"`
-	HasPrev     bool                             `json:"has_prev"`
-	HasNext     bool                             `json:"has_next"`
-	PrevPage    int64                            `json:"prev_page"`
-	NextPage    int64                            `json:"next_page"`
-	CurrentPage int64                            `json:"current_page"`
+	Challenges  []data.Challenge `json:"challenges"`
+	HasPrev     bool             `json:"has_prev"`
+	HasNext     bool             `json:"has_next"`
+	PrevPage    int64            `json:"prev_page"`
+	NextPage    int64            `json:"next_page"`
+	CurrentPage int64            `json:"current_page"`
 }
 
 func getPageData(ctx *gin.Context, page int64) (ChallengePage, error) {
@@ -217,22 +217,13 @@ func getPageData(ctx *gin.Context, page int64) (ChallengePage, error) {
 
 	// Get better titles if available
 	for i := range challenges_data {
-		tryBetterTitle(&challenges_data[i].Challenge)
-	}
-
-	// Optionally, retrieve the total count to determine pagination links.
-	countRow, err := repo.CountChallenges(ctx)
-	if err != nil {
-		l.Printf("error counting challenges: %v", err)
-		return ChallengePage{}, err
-	}
-	if config.Debug() {
-		l.Printf("%d challenges available\n", countRow)
+		tryBetterTitle(&challenges_data[i])
 	}
 
 	// Determine if previous and next pages exist.
 	hasPrev := page > 1
-	hasNext := (page * pageSize) < countRow
+	// Assume there is a next page unless less than pagesize challenges returned
+	hasNext := len(challenges_data) == pageSize
 
 	// Build the page structure.
 	return ChallengePage{

@@ -13,6 +13,7 @@ type Challenge struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Difficulty  int64  `json:"difficulty"`
+	TestCount   int64  `json:"test_count"`
 	CreatedAt   int64  `json:"created_at"`
 	UpdatedAt   int64  `json:"updated_at"`
 }
