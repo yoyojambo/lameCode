@@ -33,6 +33,7 @@ func loadRoutes(r *gin.Engine) {
 	//users.LoadUsersHandlers(r) // / /users/ /login
 	app.LoadProblemHandlers(r) // /problems /problem/:id
 	app.LoadJudgeHandlers(r)   // /judge/test /judge/submit
+	app.LoadUserHandlers(r)    // /login /register
 }
 
 

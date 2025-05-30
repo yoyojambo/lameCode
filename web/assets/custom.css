@@ -253,3 +253,80 @@ body.htmx-request .spinner { display: inline-block; }
   background-color: #c4c4c4;
   border-color: #ddd;
 }
+
+
+/* For the login page */
+.auth-container {
+  max-width: 400px;
+  margin: 15vh auto;    /* roughly 15% down from top, auto horizontal */
+  padding: 2em;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Hide/show panels */
+.auth-panel {
+	display: none;
+	border-top: 3rem;
+}
+.auth-panel.active {
+  display: block;
+}
+
+/* Panel headers */
+.auth-title {
+  margin-bottom: 1em;
+  text-align: center;
+  font-size: 3rem;
+  color: #333;
+}
+
+/* Flash message area */
+.flash-message {
+  margin-bottom: 1em;
+  padding: 0.75em;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+.flash-message.error {
+  background: #ffe5e5;
+  color: #a33;
+}
+.flash-message.success {
+  background: #e5ffea;
+  color: #2a7;
+}
+
+/* Form layout inside each panel */
+.auth-panel form {
+  display: flex;
+  flex-direction: column;
+}
+.auth-panel label {
+  margin-top: 1em;
+  font-weight: 600;
+}
+.auth-panel input {
+  margin-top: 0.25em;
+  margin-bottom: 0.5em;
+}
+
+/* Full-width submit buttons */
+.auth-panel button {
+  margin-top: 1.5em;
+}
+
+/* Bottom “switch” link */
+.auth-switch {
+  text-align: center;
+  margin-top: 1.5em;
+  font-size: 1.5rem;
+}
+.auth-switch a {
+  color: #007bff;
+  text-decoration: none;
+}
+.auth-switch a:hover {
+  text-decoration: underline;
+}

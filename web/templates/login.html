@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+	<meta charset="UTF-8">
+	<title>Challenges</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+	<link rel="stylesheet" href="/assets/custom.css">
+	<script src="https://unpkg.com/htmx.org@1.9.2"></script>
+	<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.47.0/min/vs/loader.js"></script>
+	<script src="/assets/editor.js"></script>
+  </head>
+  <body>
+	{{ template "navbar" -}}
+
+	{{block "login" . -}}
+	<div id="main" class="container auth-container">
+	  <div id="login-panel" class="auth-panel active">
+		<h2 class="auth-title">Login</h2>
+
+		<div id="flash" class="flash-message"></div>
+
+		<form
+		  hx-post="/login"
+		  hx-boost="true"
+		  hx-target="#flash"
+		  hx-swap="innerHTML">
+		  <label for="login-username">Username</label>
+		  <input class="u-full-width" type="text" id="login-username" name="username" required>
+
+		  <label for="login-password">Password</label>
+		  <input class="u-full-width" type="password" id="login-password" name="password" required>
+
+		  <button class="button-primary u-full-width" type="submit">Log In</button>
+		</form>
+
+		<p class="auth-switch">
+		  Don’t have an account?
+		  <a href="#" id="show-register">Register here</a>
+		</p>
+	  </div>
+
+	  <div id="register-panel" class="auth-panel">
+		<h2 class="auth-title">Register</h2>
+
+		<div id="flash" class="flash-message"></div>
+
+		<form
+		  hx-post="/register"
+		  hx-boost="true"
+		  hx-target="#flash"
+		  hx-swap="innerHTML">
+		  <label for="reg-username">Choose a Username</label>
+		  <input class="u-full-width" type="text" id="reg-username" name="username" required>
+
+		  <label for="reg-password">Password</label>
+		  <input class="u-full-width" type="password" id="reg-password" name="password" required>
+
+		  <label for="reg-confirm">Confirm Password</label>
+		  <input class="u-full-width" type="password" id="reg-confirm" name="confirm_password" required>
+
+		  <button class="button-primary u-full-width" type="submit">Register</button>
+		</form>
+
+		<p class="auth-switch">
+		  Already have an account?
+		  <a href="#" id="show-login">Log in here</a>
+		</p>
+	  </div>
+
+	  <script>
+		(function(){
+			// helper to toggle panels
+			function showPanel(id) {
+				document.querySelectorAll('.auth-panel')
+					.forEach(p => p.classList.toggle('active', p.id === id));
+				const flash = document.getElementById('flash');
+				if (flash) flash.innerHTML = '';
+			}
+
+			function attachHandlers() {
+				const aReg  = document.getElementById('show-register');
+				const aLogin= document.getElementById('show-login');
+				if (aReg)   aReg.onclick   = e => { e.preventDefault(); showPanel('register-panel'); };
+				if (aLogin) aLogin.onclick = e => { e.preventDefault(); showPanel('login-panel'); };
+			}
+
+			document.addEventListener('DOMContentLoaded', attachHandlers);
+			document.body.addEventListener('htmx:afterSwap', evt => {
+				if (evt.detail.target && evt.detail.target.id === 'main') {
+					attachHandlers();
+				}
+			});
+		})();
+	  </script>
+	</div>
+	{{ end -}}
+  </body>
+</html>
