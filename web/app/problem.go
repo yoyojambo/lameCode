@@ -92,7 +92,7 @@ func tryBetterTitle(challenge *data.Challenge) {
 }
 
 func fromChallenge(challenge data.Challenge) ApiChallenge {
-	
+
 	return ApiChallenge{
 		Id:    challenge.ID,
 		Title: challenge.Title,
@@ -115,7 +115,7 @@ func problemFunc(ctx *gin.Context) {
 	}
 
 	tryBetterTitle(&p)
-	
+
 	data := gin.H{
 		"User": User{
 			LoggedIn: false,
@@ -183,17 +183,20 @@ func problemsSetPageFunc(ctx *gin.Context) {
 	}
 
 	// Render the partial template for HTMX.
+	if len(pageData.Challenges) == 0 {
+		l.Println("Not showing any challenges")
+	}
 	ctx.HTML(http.StatusOK, "challengeList", pageData)
 }
 
 // Information for a list of challenges, from a paged request
 type ChallengePage struct {
-	Challenges  []data.GetChallengesPaginatedRow `json:"challenges"`
-	HasPrev     bool                             `json:"has_prev"`
-	HasNext     bool                             `json:"has_next"`
-	PrevPage    int64                            `json:"prev_page"`
-	NextPage    int64                            `json:"next_page"`
-	CurrentPage int64                            `json:"current_page"`
+	Challenges  []data.Challenge `json:"challenges"`
+	HasPrev     bool             `json:"has_prev"`
+	HasNext     bool             `json:"has_next"`
+	PrevPage    int64            `json:"prev_page"`
+	NextPage    int64            `json:"next_page"`
+	CurrentPage int64            `json:"current_page"`
 }
 
 func getPageData(ctx *gin.Context, page int64) (ChallengePage, error) {
@@ -208,22 +211,19 @@ func getPageData(ctx *gin.Context, page int64) (ChallengePage, error) {
 		l.Printf("error fetching paginated challenges: %v", err)
 		return ChallengePage{}, err
 	}
-
-	// Get better titles if available
-	for i, _ := range challenges_data {
-		tryBetterTitle(&challenges_data[i].Challenge)
+	if len(challenges_data) == 0 {
+		l.Println("No challenges found...")
 	}
 
-	// Optionally, retrieve the total count to determine pagination links.
-	countRow, err := repo.CountChallenges(ctx)
-	if err != nil {
-		l.Printf("error counting challenges: %v", err)
-		return ChallengePage{}, err
+	// Get better titles if available
+	for i := range challenges_data {
+		tryBetterTitle(&challenges_data[i])
 	}
 
 	// Determine if previous and next pages exist.
 	hasPrev := page > 1
-	hasNext := (page * pageSize) < countRow
+	// Assume there is a next page unless less than pagesize challenges returned
+	hasNext := len(challenges_data) == pageSize
 
 	// Build the page structure.
 	return ChallengePage{
