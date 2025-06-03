@@ -3,10 +3,12 @@ CREATE TABLE users (
     id INTEGER PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
     password_hash BLOB NOT NULL, -- bcrypt-hashed password
-	is_admin INTEGER NOT NULL DEFAULT 0,
+    is_admin INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL DEFAULT (unixepoch()),
     updated_at INTEGER NOT NULL DEFAULT (unixepoch())
 );
+
+CREATE INDEX idx_users_username ON users(username);
 
 -- Table: Challenges
 CREATE TABLE challenges (

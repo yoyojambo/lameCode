@@ -40,6 +40,7 @@ func testSubmission(ctx *gin.Context) {
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		l.Println("Error parsing challenge id in /test:", err)
+		return
 	}
 
 	var submission Submission
@@ -55,6 +56,7 @@ func testSubmission(ctx *gin.Context) {
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError)
 		l.Println("Error getting tests for challenge in test:", err)
+		return
 	}
 
 	results, err := judge.RunMultipleTests(submission.Code, submission.Language, tests)
@@ -70,6 +72,7 @@ func testSubmission(ctx *gin.Context) {
 		// Error in any other phase
 		ctx.AbortWithStatus(http.StatusInternalServerError)
 		l.Println("Error running tests for challenge in test:", err)
+		return
 	}
 	
 	ctx.HTML(http.StatusOK, "result-table", results)

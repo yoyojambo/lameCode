@@ -30,6 +30,7 @@
 {{- /* This is the challengelist template that actually shows challenges, and loads new ones  */ -}}
 
 {{define "challengeList"}}
+<<<<<<< Updated upstream
   <div class="challengeList">
 	<ul hx-boost="true" hx-target="#main" hx-swap="innerHTML show:#navbar:top" style="list-style: none; padding: 0;">
 	  {{- range .Challenges }}
@@ -61,6 +62,64 @@
 	  {{- end }}
 	</ul>
   </div>
+=======
+<div cclass="challengeList">
+  <table
+    hx-boost="true"
+    hx-target="#main"
+    hx-swap="innerHTML show:#navbar:top"
+    style="width: 100%; border-collapse: collapse;"
+  >
+    <thead>
+      <tr>
+        <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: left;">
+          Challenge
+        </th>
+        <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: left;">
+          Difficulty
+        </th>
+        <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: left;">
+          Tests
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {{- range .Challenges }}
+      <tr>
+        <td style="padding: 10px; border-bottom: 1px solid #eee;">
+          <a
+            href="/problem/{{ .Challenge.ID }}"
+            style="text-decoration: none; color: inherit; display: block;"
+          >
+            <b>{{ .Challenge.Title }}</b>
+          </a>
+        </td>
+        <td style="padding: 10px; border-bottom: 1px solid #eee;">
+          {{- if eq .Challenge.Difficulty 1 }}
+          <span class="difficulty easy">Easy</span>
+          {{ else if eq .Challenge.Difficulty 2 }}
+          <span class="difficulty medium">Medium</span>
+          {{ else if eq .Challenge.Difficulty 3 }}
+          <span class="difficulty hard">Hard</span>
+          {{ else }}
+          <span class="difficulty">Not tagged</span>
+          {{- end }}
+        </td>
+        <td style="padding: 10px; border-bottom: 1px solid #eee;">
+          {{.TestCount}} tests
+        </td>
+      </tr>
+      {{- else }}
+      <tr>
+        <td colspan="3" style="padding: 10px; text-align: center;">
+          No challenges available.
+        </td>
+      </tr>
+      {{- end }}
+    </tbody>
+  </table>
+</div>
+>>>>>>> Stashed changes
 
   {{- if .HasNext }}
   <div hx-get="/problemlist?page={{ .NextPage }}" 

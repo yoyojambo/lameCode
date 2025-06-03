@@ -16,9 +16,17 @@ import (
 var l = log.New(os.Stdout, "[judge] ", log.LstdFlags|log.Lmsgprefix)
 
 type LanguageOption struct {
-	Lang string
+	Lang       string
 	PrettyName string
-	Compiler string
+	Compiler   string
+}
+
+type Compiler interface {
+	SourceExt() string
+	OutputExt() string
+	Environ() []string
+	// Returns cmd and the executable it will return
+	Cmd(programPath string) (*exec.Cmd, string) 
 }
 
 var checkCompilersOnce sync.Once
@@ -59,7 +67,8 @@ func LanguageOptions() []LanguageOption {
 	return languageOptions
 }
 
-// callGoCompiler builds Go programs using TinyGo (WASI target), falls back to standard Go
+// callGoCompiler builds Go programs using TinyGo (WASI target),
+// falls back to standard Go
 func callGoCompiler(program string) (string, error) {
 	if !strings.HasSuffix(program, ".go") {
 		return "", fmt.Errorf("expected .go, got %s", program)
@@ -144,6 +153,7 @@ const installWasmer_cmd = "curl https://get.wasmer.io -sSfL | sh"
 const wasmerDir = "/tmp/wasmer"
 
 var installWasmerOnce sync.Once
+
 // goroutine to install wasmer
 func installWasmer() {
 	cmd := exec.Command("sh", "-c", installWasmer_cmd)
@@ -164,6 +174,8 @@ func resolveWasmRuntime(executable string) (*exec.Cmd, error) {
 	runtime, err := exec.LookPath("wasmtime")
 	if err == nil {
 		return exec.Command(runtime, executable), nil
+	} else if config.Debug() {
+		l.Printf("wasmtime runtime not found: %v\n", err)
 	}
 
 	// Check if wasmer is there
@@ -177,6 +189,8 @@ func resolveWasmRuntime(executable string) (*exec.Cmd, error) {
 	runtime, err = exec.LookPath("iwasm")
 	if err == nil {
 		return exec.Command(runtime, executable), nil
+	} else if config.Debug() {
+		l.Printf("iwasm runtime not found: %v\n", err)
 	}
 
 	// Check for self-installed wasmer
@@ -265,7 +279,6 @@ func compileProgram(code, lang string) (string, error) {
 		return "", fmt.Errorf("unsupported language: %s", lang)
 	}
 }
-
 
 type Result struct {
 	Name       string // Optional
