@@ -285,9 +285,9 @@ body.htmx-request .spinner { display: inline-block; }
 /* Flash message area */
 .flash-message {
   margin-bottom: 1em;
-  padding: 0.75em;
-  border-radius: 4px;
-  font-size: 0.95rem;
+  padding: 10px;
+  border-radius: 15px;
+  font-size: 1.5rem;
 }
 .flash-message.error {
   background: #ffe5e5;

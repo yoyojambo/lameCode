@@ -258,7 +258,7 @@ func (q *Queries) GetTestsForChallenge(ctx context.Context, challengeID int64) (
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT id, username, password, created_at, updated_at FROM users
+SELECT id, username, password_hash, is_admin, created_at, updated_at FROM users
 WHERE id = ?
 `
 
@@ -268,7 +268,8 @@ func (q *Queries) GetUserById(ctx context.Context, id int64) (User, error) {
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
-		&i.Password,
+		&i.PasswordHash,
+		&i.IsAdmin,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -276,7 +277,7 @@ func (q *Queries) GetUserById(ctx context.Context, id int64) (User, error) {
 }
 
 const getUserByName = `-- name: GetUserByName :one
-SELECT id, username, password, created_at, updated_at FROM users
+SELECT id, username, password_hash, is_admin, created_at, updated_at FROM users
 WHERE username = ?
 `
 
@@ -286,7 +287,8 @@ func (q *Queries) GetUserByName(ctx context.Context, username string) (User, err
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
-		&i.Password,
+		&i.PasswordHash,
+		&i.IsAdmin,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -332,7 +334,7 @@ func (q *Queries) GetUserSolutions(ctx context.Context, userID int64, challengeI
 }
 
 const getUsers = `-- name: GetUsers :many
-SELECT id, username, password, created_at, updated_at FROM users ORDER BY username
+SELECT id, username, password_hash, is_admin, created_at, updated_at FROM users ORDER BY username
 `
 
 func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
@@ -347,7 +349,8 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 		if err := rows.Scan(
 			&i.ID,
 			&i.Username,
-			&i.Password,
+			&i.PasswordHash,
+			&i.IsAdmin,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -420,11 +423,11 @@ func (q *Queries) NewSolution(ctx context.Context, arg NewSolutionParams) (int64
 }
 
 const newUser = `-- name: NewUser :one
-INSERT INTO users (username, password) VALUES (?, ?) RETURNING id
+INSERT INTO users (username, password_hash) VALUES (?, ?) RETURNING id
 `
 
-func (q *Queries) NewUser(ctx context.Context, username string, password string) (int64, error) {
-	row := q.db.QueryRowContext(ctx, newUser, username, password)
+func (q *Queries) NewUser(ctx context.Context, username string, passwordHash []byte) (int64, error) {
+	row := q.db.QueryRowContext(ctx, newUser, username, passwordHash)
 	var id int64
 	err := row.Scan(&id)
 	return id, err
@@ -456,17 +459,18 @@ func (q *Queries) UpdateSolutionStatus(ctx context.Context, newstatus string, ru
 
 const updateUserPassword = `-- name: UpdateUserPassword :one
 UPDATE users SET
-password = ?1, updated_at = unixepoch()
-WHERE id = ?2 RETURNING id, username, password, created_at, updated_at
+password_hash = ?1, updated_at = unixepoch()
+WHERE id = ?2 RETURNING id, username, password_hash, is_admin, created_at, updated_at
 `
 
-func (q *Queries) UpdateUserPassword(ctx context.Context, newpassword string, userid int64) (User, error) {
+func (q *Queries) UpdateUserPassword(ctx context.Context, newpassword []byte, userid int64) (User, error) {
 	row := q.db.QueryRowContext(ctx, updateUserPassword, newpassword, userid)
 	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
-		&i.Password,
+		&i.PasswordHash,
+		&i.IsAdmin,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

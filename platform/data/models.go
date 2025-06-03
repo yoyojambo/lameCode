@@ -38,11 +38,12 @@ type Solution struct {
 }
 
 type User struct {
-	ID        int64  `json:"id"`
-	Username  string `json:"username"`
-	Password  string `json:"password"`
-	CreatedAt int64  `json:"created_at"`
-	UpdatedAt int64  `json:"updated_at"`
+	ID           int64  `json:"id"`
+	Username     string `json:"username"`
+	PasswordHash []byte `json:"password_hash"`
+	IsAdmin      int64  `json:"is_admin"`
+	CreatedAt    int64  `json:"created_at"`
+	UpdatedAt    int64  `json:"updated_at"`
 }
 
 type UserCompletedChallenge struct {

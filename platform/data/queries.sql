@@ -1,9 +1,9 @@
 -- name: NewUser :one
-INSERT INTO users (username, password) VALUES (?, ?) RETURNING id;
+INSERT INTO users (username, password_hash) VALUES (?, ?) RETURNING id;
 
 -- name: UpdateUserPassword :one
 UPDATE users SET
-password = sqlc.arg(newPassword), updated_at = unixepoch()
+password_hash = sqlc.arg(newPassword), updated_at = unixepoch()
 WHERE id = sqlc.arg(userId) RETURNING *;
 
 -- name: GetUsers :many

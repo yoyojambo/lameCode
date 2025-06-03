@@ -14,16 +14,19 @@
 
 	{{block "login" . -}}
 	<div id="main" class="container auth-container">
+
+	  {{block "login-message" .flash -}}
+	  <div id="flash" class="flash-message {{.type}}">{{.message}}</div>
+	  {{end -}}
+	  
 	  <div id="login-panel" class="auth-panel active">
 		<h2 class="auth-title">Login</h2>
-
-		<div id="flash" class="flash-message"></div>
 
 		<form
 		  hx-post="/login"
 		  hx-boost="true"
 		  hx-target="#flash"
-		  hx-swap="innerHTML">
+		  hx-swap="outerHTML">
 		  <label for="login-username">Username</label>
 		  <input class="u-full-width" type="text" id="login-username" name="username" required>
 
@@ -42,13 +45,11 @@
 	  <div id="register-panel" class="auth-panel">
 		<h2 class="auth-title">Register</h2>
 
-		<div id="flash" class="flash-message"></div>
-
 		<form
 		  hx-post="/register"
 		  hx-boost="true"
 		  hx-target="#flash"
-		  hx-swap="innerHTML">
+		  hx-swap="outerHTML">
 		  <label for="reg-username">Choose a Username</label>
 		  <input class="u-full-width" type="text" id="reg-username" name="username" required>
 
