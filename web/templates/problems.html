@@ -1,18 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Challenges</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
-  <link rel="stylesheet" href="/assets/custom.css">
-  <script src="https://unpkg.com/htmx.org@1.9.2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.47.0/min/vs/loader.js"></script>
-  <script src="/assets/editor.js"></script>
-</head>
+{{template "head" "Home"}}
 <body>
   {{- template "navbar" -}}
 
   {{- block "problemTable" .}}
+  <title>Home</title>
   <div id="main" class="container">
 	<h1 style="text-align: center">All Challenges</h1>
 	
@@ -30,44 +23,31 @@
 {{- /* This is the challengelist template that actually shows challenges, and loads new ones  */ -}}
 
 {{define "challengeList"}}
-<<<<<<< Updated upstream
-  <div class="challengeList">
-	<ul hx-boost="true" hx-target="#main" hx-swap="innerHTML show:#navbar:top" style="list-style: none; padding: 0;">
-	  {{- range .Challenges }}
-	  <li style="margin-bottom: 20px;">
-		<a href="/problem/{{ .ID }}" style="text-decoration: none; color: inherit; display: block; padding: 10px; border: 1px solid transparent; border-radius: 4px; transition: background-color 0.3s;">
-          {{- /* Add a container for the title and difficulty */ -}}
-          <div class="challenge-info">
-    		  <h5 style="margin: 0;"><b>{{ .Title }}</b></h5>
-    		  <p style="margin: 5px 0;">
-    			{{- if eq .Difficulty 1 }}
-    			<span class="difficulty easy">Easy</span>
-    			{{ else if eq .Difficulty 2 }}
-    			<span class="difficulty medium">Medium</span>
-    			{{ else if eq .Difficulty 3 }}
-    			<span class="difficulty hard">Hard</span>
-    			{{ else }}
-    			<span class="difficulty">Not tagged</span>
-    			{{- end }}
-    		  </p>
-          </div>
-          {{- /* Move the test count inside the anchor tag as well, but in a separate container */ -}}
-          <div class="test-count">
-            <p>{{.TestCount}} tests</p>
-          </div>
-		</a>
-	  </li>
-	  {{- else }}
-	  <li>No challenges available.</li>
-	  {{- end }}
-	</ul>
-  </div>
-=======
-<div cclass="challengeList">
+<div id="challenges" class="challengeList">
+  {{- if .HasPrev }}
+  <button 
+    hx-get="/problemlist?page={{ .PrevPage }}" 
+    hx-target="#challenges" 
+    hx-swap="outerHTML" 
+    style="padding: 10px; cursor: pointer;">
+    << Back
+       </button>
+  {{end}}
+
+  {{- if .HasNext }}
+  <button 
+    hx-get="/problemlist?page={{ .NextPage }}" 
+    hx-target="#challenges" 
+    hx-swap="outerHTML" 
+    style="padding: 10px; cursor: pointer;">
+    Next >>
+  </button>
+  {{- end }}
+
   <table
     hx-boost="true"
     hx-target="#main"
-    hx-swap="innerHTML show:#navbar:top"
+    hx-swap="outerHTML show:#navbar:top"
     style="width: 100%; border-collapse: collapse;"
   >
     <thead>
@@ -88,18 +68,18 @@
       <tr>
         <td style="padding: 10px; border-bottom: 1px solid #eee;">
           <a
-            href="/problem/{{ .Challenge.ID }}"
+            href="/problem/{{ .ID }}#"
             style="text-decoration: none; color: inherit; display: block;"
           >
-            <b>{{ .Challenge.Title }}</b>
+            <b>{{ .Title }}</b>
           </a>
         </td>
         <td style="padding: 10px; border-bottom: 1px solid #eee;">
-          {{- if eq .Challenge.Difficulty 1 }}
+          {{- if eq .Difficulty 1 }}
           <span class="difficulty easy">Easy</span>
-          {{ else if eq .Challenge.Difficulty 2 }}
+          {{ else if eq .Difficulty 2 }}
           <span class="difficulty medium">Medium</span>
-          {{ else if eq .Challenge.Difficulty 3 }}
+          {{ else if eq .Difficulty 3 }}
           <span class="difficulty hard">Hard</span>
           {{ else }}
           <span class="difficulty">Not tagged</span>
@@ -119,14 +99,4 @@
     </tbody>
   </table>
 </div>
->>>>>>> Stashed changes
-
-  {{- if .HasNext }}
-  <div hx-get="/problemlist?page={{ .NextPage }}" 
-	   hx-trigger="revealed" 
-	   hx-swap="outerHTML"
-	   style="padding: 10px; text-align: center; font-style: italic;">
-	Loading more challenges…
-  </div>
-  {{- end }}
 {{ end }}

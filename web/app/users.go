@@ -12,6 +12,8 @@ import (
 
 func LoadUserHandlers(r *gin.Engine) {
 	r.GET("/login", loginPageFunc)
+	
+	r.POST("/login", loginUserFunc)
 	r.POST("/register", registerUserFunc)
 }
 
@@ -25,9 +27,44 @@ func loginPageFunc(ctx *gin.Context) {
 	ctx.HTML(http.StatusOK, "login", gin.H{})
 }
 
+func loginUserFunc(ctx *gin.Context) {
+	var req struct {
+		Username     string `form:"username" binding:"required,alphanum,min=5,max=32"`
+		Password     string `form:"password" binding:"required,min=8,max=70"`
+	}
+
+	if err := ctx.ShouldBind(&req); err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	repo := data.Repository()
+
+	user, err := repo.GetUserByName(ctx.Request.Context(), req.Username)
+	if err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), 0)
+	if err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := bcrypt.CompareHashAndPassword(hash, user.PasswordHash); err != nil {
+		l.Printf("Comparison of hash %s and %s failed: %v\n",
+			hash, user.PasswordHash, err)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	l.Printf("Logged in as %s!\n", req.Username)
+}
+
 func registerUserFunc(ctx *gin.Context) {
 	var req struct {
-		Username     string `form:"username" binding:"required,alphanum,min=3,max=32"`
+		Username     string `form:"username" binding:"required,alphanum,min=5,max=32"`
 		Password     string `form:"password" binding:"required,min=8,max=70"`
 		Confirmation string `form:"confirm_password" binding:"required,min=8,max=70"`
 	}

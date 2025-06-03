@@ -1,18 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-	<meta charset="UTF-8">
-	<title>Challenges</title>
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
-	<link rel="stylesheet" href="/assets/custom.css">
-	<script src="https://unpkg.com/htmx.org@1.9.2"></script>
-	<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.47.0/min/vs/loader.js"></script>
-	<script src="/assets/editor.js"></script>
-  </head>
+  {{ template "head" "Login"}}
   <body>
 	{{ template "navbar" -}}
 
 	{{block "login" . -}}
+	<title>Login</title>
 	<div id="main" class="container auth-container">
 
 	  {{block "login-message" .flash -}}
@@ -67,32 +60,6 @@
 		  <a href="#" id="show-login">Log in here</a>
 		</p>
 	  </div>
-
-	  <script>
-		(function(){
-			// helper to toggle panels
-			function showPanel(id) {
-				document.querySelectorAll('.auth-panel')
-					.forEach(p => p.classList.toggle('active', p.id === id));
-				const flash = document.getElementById('flash');
-				if (flash) flash.innerHTML = '';
-			}
-
-			function attachHandlers() {
-				const aReg  = document.getElementById('show-register');
-				const aLogin= document.getElementById('show-login');
-				if (aReg)   aReg.onclick   = e => { e.preventDefault(); showPanel('register-panel'); };
-				if (aLogin) aLogin.onclick = e => { e.preventDefault(); showPanel('login-panel'); };
-			}
-
-			document.addEventListener('DOMContentLoaded', attachHandlers);
-			document.body.addEventListener('htmx:afterSwap', evt => {
-				if (evt.detail.target && evt.detail.target.id === 'main') {
-					attachHandlers();
-				}
-			});
-		})();
-	  </script>
 	</div>
 	{{ end -}}
   </body>

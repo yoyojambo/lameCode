@@ -1,97 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>LameCode - {{ .Problem.Title }}</title>
-  <!-- Minimal CSS (Skeleton) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
-  <link rel="stylesheet" href="/assets/custom.css">
-  <script src="https://cdn.jsdelivr.net/npm/htmx.org@1.9.2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.47.0/min/vs/loader.js"></script>
-  <script src="/assets/editor.js"></script>
-</head>
-<body>
-  {{template "navbar"}}
+  {{template "head" .Problem.Title}}
+  <body>
+    {{template "navbar"}}
 
-  {{block "problem" .}}
-  <div id="main" class="container">
-    <div class="row">
-      <!-- Left Column: Problem Details -->
-      <div class="six columns box">
-        <h3>{{ .Problem.Title }}</h3>
-        {{/* Difficulty label logic */}}
-        {{ if eq .Problem.Difficulty 1 }}
-        <span class="difficulty easy">Easy</span>
-        {{ else if eq .Problem.Difficulty 2 }}
-        <span class="difficulty medium">Medium</span>
-        {{ else if eq .Problem.Difficulty 3 }}
-        <span class="difficulty hard">Hard</span>
-        {{ else }}
-        <span class="difficulty">Not tagged</span>
-        {{ end }}
+    {{block "problem" .}}
+    <title>{{.Problem.Title}}</title>
+    <div id="main" class="container">
+      <div class="row">
+	<!-- Left Column: Problem Details -->
+	<div class="six columns box">
+          <h3>{{ .Problem.Title }}</h3>
+          {{/* Difficulty label logic */}}
+          {{ if eq .Problem.Difficulty 1 }}
+          <span class="difficulty easy">Easy</span>
+          {{ else if eq .Problem.Difficulty 2 }}
+          <span class="difficulty medium">Medium</span>
+          {{ else if eq .Problem.Difficulty 3 }}
+          <span class="difficulty hard">Hard</span>
+          {{ else }}
+          <span class="difficulty">Not tagged</span>
+          {{ end }}
 
-        <!-- Problem description is rendered as HTML -->
-        <div id="problem-description">
-          {{ .Problem.Description }}
-        </div>
-      </div>
+          <!-- Problem description is rendered as HTML -->
+          <div id="problem-description">
+            {{ .Problem.Description }}
+          </div>
+	</div>
 
-      <!-- Right Column: Code Editor and Results -->
+	<!-- Right Column: Code Editor and Results -->
 
-      <div class="six columns box" style="margin-left: 1%">
-		<div class="editor-container">
-		  <div class="editor-top-bar">
-			<select id="language-select" name="language">
-			  {{- range .LanguageOptions}}
-			  {{- /* Show only currently available languages */ -}}
-			  <option value={{.Lang}}>{{.PrettyName}} ({{.Compiler}})</option>
-			  {{- end}}
-			</select>
-			<button id="reset-button" type="button">Reset</button>
-		  </div>
+	<div class="six columns box" style="margin-left: 1%">
+	  <div class="editor-container">
+	    <div class="editor-top-bar">
+	      <select id="language-select" name="language">
+		{{- range .LanguageOptions}}
+		{{- /* Show only currently available languages */ -}}
+		<option value={{.Lang}}>{{.PrettyName}} ({{.Compiler}})</option>
+		{{- end}}
+	      </select>
+	      <button id="reset-button" type="button">Reset</button>
+	    </div>
 
-		  <div id="code-editor"></div>
-		  <textarea id="code-input" name="code" hidden></textarea>
+	    <div id="code-editor"></div>
+	    <textarea id="code-input" name="code" hidden></textarea>
 
-		  <div class="editor-bottom-bar">
-			<button id="test-button"
-					hx-post="/judge/test/{{.Problem.Id}}"
-					hx-include="#code-input,#language-select"
-					hx-target="#results"
-					hx-swap="innerHTML"
-					hx-indicator=".spinner"
-					type="button"
-					onclick="document.getElementById('code-input').value = window.editor.getValue()"
-					>Test</button>
+	    <div class="editor-bottom-bar">
+	      <button id="test-button"
+		      hx-post="/judge/test/{{.Problem.Id}}"
+		      hx-include="#code-input,#language-select"
+		      hx-target="#results"
+		      hx-swap="innerHTML"
+		      hx-indicator=".spinner"
+		      type="button"
+		      onclick="document.getElementById('code-input').value = window.editor.getValue()"
+		      >Test</button>
 
-			<button id="submit-button"
-					hx-post="/judge/submit"
-					hx-include="#code-input,#language-select"
-					hx-target="#submission-modal .modal-content p"
-					hx-swap="innerHTML"
-					hx-indicator=".spinner"
-					type="button"
-					onclick="document.getElementById('code-input').value = window.editor.getValue()"
-					>Submit</button>
+	      <button id="submit-button"
+		      hx-post="/judge/submit"
+		      hx-include="#code-input,#language-select"
+		      hx-target="#submission-modal .modal-content p"
+		      hx-swap="innerHTML"
+		      hx-indicator=".spinner"
+		      type="button"
+		      onclick="document.getElementById('code-input').value = window.editor.getValue()"
+		      >Submit</button>
 
-			<div class="spinner">⏳</div>
-		  </div>
+	      <div class="spinner">⏳</div>
+	    </div>
 
-		  <div id="results" class="results">No results yet.</div>
-		</div>
+	    <div id="results" class="results">No results yet.</div>
 	  </div>
+	</div>
 
-      <div id="submission-modal" class="modal" style="display:none">
-		<div class="modal-content">
-		  <span class="close" onclick="document.getElementById('submission-modal').style.display='none'">&times;</span>
-		  <p>Your code has been submitted. We’ll let you know the results soon!</p>
-		</div>
+	<div id="submission-modal" class="modal" style="display:none">
+	  <div class="modal-content">
+	    <span class="close" onclick="document.getElementById('submission-modal').style.display='none'">&times;</span>
+	    <p>Your code has been submitted. We’ll let you know the results soon!</p>
+	  </div>
+	</div>
+
       </div>
-
     </div>
-  </div>
-  {{end}}
-</body>
+    {{end}}
+  </body>
 </html>
 
 {{- define "result-table"}}
@@ -110,9 +102,9 @@
       <td>{{.Name}}</td>
       <td>
         {{- if .Pass}}
-          <span class="pass-status pass">Pass</span>
+        <span class="pass-status pass">Pass</span>
         {{else}}
-          <span class="pass-status fail">Fail</span>
+        <span class="pass-status fail">Fail</span>
         {{- end}}
       </td>
       <td>{{.Runtime}}</td>
