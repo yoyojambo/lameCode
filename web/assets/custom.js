@@ -13,18 +13,6 @@ func main() {
     // your Go solution here
 }
 `,
-	python: `def main():
-    # your Python solution here
-
-if __name__ == "__main__":
-    main()
-`,
-	javascript: `function main() {
-    // your JS solution here
-}
-
-main();
-`,
 	cpp: `int main() {
   // your C++ solution here
   return 0;

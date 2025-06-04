@@ -15,138 +15,160 @@ import (
 
 var l = log.New(os.Stdout, "[judge] ", log.LstdFlags|log.Lmsgprefix)
 
+// LanguageOption is what is used in the template for a problem, to
+// only advertise available languages.
 type LanguageOption struct {
 	Lang       string
 	PrettyName string
 	Compiler   string
 }
 
-type Compiler interface {
-	SourceExt() string
-	OutputExt() string
-	Environ() []string
-	// Returns cmd and the executable it will return
-	Cmd(programPath string) (*exec.Cmd, string) 
+// CompilerConfig abstracts the calling of a compiler for any language.
+// It indicates
+//   - The file extension of the code
+//   - The extension of the output
+//     (currently only wasm until I figure out more ways of isolating code execution)
+//   - The environment variables to pass the command
+//   - The format to call the compiler, inserting the executable output name and the code
+type CompilerConfig struct {
+	srcExt, exeExt, cmdName string
+	// buildArgs is called per-compile to customize flags (e.g. different targets).
+	buildArgs func(src, exe string) []string
+	// environ can set GOOS, WASM flags, etc.
+	environ []string
 }
+
+// Immutable essentially
+func (cfg CompilerConfig) SourceExt() string { return cfg.srcExt }
+func (cfg CompilerConfig) ExecExt() string   { return cfg.exeExt }
+func (cfg CompilerConfig) CmdAndArgs(src, exe string) (string, []string, []string) {
+	return cfg.cmdName, cfg.buildArgs(src, exe), cfg.environ
+}
+
+func (c CompilerConfig) Compile(sourcePath string) (string, error) {
+	if !strings.HasSuffix(sourcePath, "."+c.SourceExt()) {
+		return "", fmt.Errorf("expected .%s, got %s", c.SourceExt(), sourcePath)
+	}
+
+	base := filepath.Base(strings.TrimSuffix(sourcePath, "."+c.SourceExt()))
+	exe := base + "." + c.ExecExt()
+
+	cmdName, args, extraEnv := c.CmdAndArgs(sourcePath, exe)
+	cmd := exec.Command(cmdName, args...)
+	cmd.Env = append(os.Environ(), extraEnv...)
+
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return "", fmt.Errorf("%s failed: %v\n%s", cmdName, err, out)
+	}
+	return exe, nil
+}
+
+var languageOptions []LanguageOption = make([]LanguageOption, 0, 5)
+var compilers []CompilerConfig
 
 var checkCompilersOnce sync.Once
-var languageOptions []LanguageOption
-
-// TODO: Add compiler version to Compiler field
-// It only runs once anyway
-func checkCompilers() {
-	// Check for Rust compiler
-	if _, err := exec.LookPath("rustc"); err == nil {
-		// "rust" instead of "rs" for the monaco editor
-		languageOptions = append(languageOptions, LanguageOption{"rust", "Rust", "rustc"})
-	}
-
-	// Check for either go compiler
-	if _, err := exec.LookPath("go"); err == nil {
-		languageOptions = append(languageOptions, LanguageOption{"go", "Go", "go"})
-	} else if _, err := exec.LookPath("tinygo"); err == nil {
-		languageOptions = append(languageOptions, LanguageOption{"go", "Go", "tinygo"})
-	}
-
-	// Check for emscripten (includes clang)
-	if _, err := exec.LookPath("emcc"); err == nil {
-		languageOptions = append(languageOptions, LanguageOption{"c", "C", "emcc"})
-	}
-	// check em++ separately cause you never know what's up with the host system
-	if _, err := exec.LookPath("em++"); err == nil {
-		languageOptions = append(languageOptions, LanguageOption{"cpp", "C++", "em++"})
-	}
-
-	for _, option := range languageOptions {
-		l.Printf("Found %s for %s\n", option.Compiler, option.PrettyName)
-	}
-}
 
 func LanguageOptions() []LanguageOption {
 	checkCompilersOnce.Do(checkCompilers)
 	return languageOptions
 }
 
-// callGoCompiler builds Go programs using TinyGo (WASI target),
-// falls back to standard Go
-func callGoCompiler(program string) (string, error) {
-	if !strings.HasSuffix(program, ".go") {
-		return "", fmt.Errorf("expected .go, got %s", program)
-	}
-	exe := filepath.Base(strings.TrimSuffix(program, ".go")) + ".wasm"
+// TODO: Add compiler version to Compiler field
+// It only runs once anyway
+func checkCompilers() {
+	// Normal rust compiler
+	if path, err := exec.LookPath("rustc"); err == nil {
+		l.Println("Found rustc")
+		compilers = append(compilers, CompilerConfig{
+			srcExt:  "rust",
+			exeExt:  "wasm",
+			cmdName: path,
+			buildArgs: func(src, exe string) []string {
+				return []string{"--target=wasm32-wasip1", "-O", "-o", exe, src}
+			},
+			environ: []string{},
+		})
 
-	compiler, err := exec.LookPath("tinygo")
-	if err == nil {
-		// TinyGo for WASI
-		cmd := exec.Command(compiler, "build", "-o", exe, "-target", "wasi", program)
-		if out, err := cmd.CombinedOutput(); err != nil {
-			return "", fmt.Errorf("tinygo build failed: %v\n%s", err, out)
+		cmd := exec.Command(path, "--version")
+		out, err := cmd.Output()
+		if err != nil {
+			l.Printf("Failed running rustc to get version: %v", err)
 		}
-		return exe, nil
-	}
-	// Fallback to standard Go (js/wasm)
-	compiler, err = exec.LookPath("go")
-	if err != nil {
-		return "", err
+
+		out_split := strings.Split(string(out), " ")
+		if len(out_split) > 1 {
+			languageOptions = append(languageOptions, LanguageOption{"rust", "Rust", strings.Join(out_split[:2], " ")})
+		} else {
+			languageOptions = append(languageOptions, LanguageOption{"rust", "Rust", "rustc"})
+		}
 	}
 
-	cmd := exec.Command(compiler, "build", "-o", exe, program)
-	cmd.Env = append(os.Environ(), "GOOS=wasip1", "GOARCH=wasm")
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return "", fmt.Errorf("go build failed: %v\n%s", err, out)
-	}
-	return exe, nil
-}
+	// TinyGo (preferred) or Go fallback
+	if tg, err := exec.LookPath("tinygo"); err == nil {
+		l.Println("Found tinygo")
+		compilers = append(compilers, CompilerConfig{
+			srcExt:  "go",
+			exeExt:  "wasm",
+			cmdName: tg,
+			buildArgs: func(src, exe string) []string {
+				return []string{"build", "-o", exe, "-target", "wasi", src}
+			},
+			// environ can be left zero-valued if there is no env variables to set
+			//environ: []string{},
+		})
+		languageOptions = append(languageOptions, LanguageOption{"go", "Go", "tinygo"})
+	} else if gopath, err := exec.LookPath("go"); err == nil {
+		l.Println("Found go")
+		compilers = append(compilers, CompilerConfig{
+			srcExt:  "go",
+			exeExt:  "wasm",
+			cmdName: gopath,
+			buildArgs: func(src, exe string) []string {
+				return []string{"build", "-o", exe, src}
+			},
+			environ: []string{"GOOS=wasip1", "GOARCH=wasm"},
+		})
+		
+		cmd := exec.Command(gopath, "version")
+		out, err := cmd.Output()
+		if err != nil {
+			l.Printf("Failed running rustc to get version: %v", err)
+		}
 
-// callRustCompiler builds Rust programs targeting wasm32-wasi
-func callRustCompiler(program string) (string, error) {
-	if !strings.HasSuffix(program, ".rust") {
-		return "", fmt.Errorf("expected .rust, got %s", program)
+		out_split := strings.Split(string(out), " ")
+		if len(out_split) > 2 {
+			languageOptions = append(languageOptions, LanguageOption{"go", "Go", out_split[2]})
+		} else {
+			languageOptions = append(languageOptions, LanguageOption{"go", "Go", "go"})
+		}
 	}
-	exe := filepath.Base(strings.TrimSuffix(program, ".rust")) + ".wasm"
-	compiler, err := exec.LookPath("rustc")
-	if err != nil {
-		return "", err
-	}
-	cmd := exec.Command(compiler, "--target=wasm32-wasip1", "-O", "-o", exe, program)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return "", fmt.Errorf("rustc failed: %v\n%s", err, out)
-	}
-	return exe, nil
-}
 
-// callGccCompiler uses emcc to compile C to standalone WASM
-func callGccCompiler(program string) (string, error) {
-	if !strings.HasSuffix(program, ".c") {
-		return "", fmt.Errorf("expected .c, got %s", program)
+	// Emscripten for C and C++
+	if emcc, err := exec.LookPath("emcc"); err == nil {
+		l.Println("Found emcc")
+		compilers = append(compilers, CompilerConfig{
+			srcExt:  "c",
+			exeExt:  "wasm",
+			cmdName: emcc,
+			buildArgs: func(src, exe string) []string {
+				return []string{src, "-o", exe, "-Oz", "-sSTANDALONE_WASM"}
+			},
+		})
+		languageOptions = append(languageOptions, LanguageOption{"c", "C", "emcc"})
 	}
-	exe := filepath.Base(strings.TrimSuffix(program, ".c")) + ".wasm"
-	emcc, err := exec.LookPath("emcc")
-	if err != nil {
-		return "", err
+	if empp, err := exec.LookPath("em++"); err == nil {
+		l.Println("Found em++")
+		compilers = append(compilers, CompilerConfig{
+			srcExt:  "cpp",
+			exeExt:  "wasm",
+			cmdName: empp,
+			buildArgs: func(src, exe string) []string {
+				return []string{src, "-o", exe, "-Oz", "-sSTANDALONE_WASM"}
+			},
+		})
 	}
-	cmd := exec.Command(emcc, program, "-o", exe, "-Oz", "-sSTANDALONE_WASM")
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return "", fmt.Errorf("emcc failed: %v\n%s", err, out)
-	}
-	return exe, nil
-}
 
-// callGppCompiler uses em++ to compile C++ to standalone WASM
-func callGppCompiler(program string) (string, error) {
-	if !strings.HasSuffix(program, ".cpp") {
-		return "", fmt.Errorf("expected .cpp, got %s", program)
-	}
-	exe := filepath.Base(strings.TrimSuffix(program, ".cpp")) + ".wasm"
-	empp, err := exec.LookPath("em++")
-	if err != nil {
-		return "", err
-	}
-	cmd := exec.Command(empp, program, "-o", exe, "-Oz", "-sSTANDALONE_WASM")
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return "", fmt.Errorf("em++ failed: %v\n%s", err, out)
-	}
-	return exe, nil
+	l.Println("Loaded all available compilers")
 }
 
 const installWasmer_cmd = "curl https://get.wasmer.io -sSfL | sh"
@@ -158,7 +180,7 @@ var installWasmerOnce sync.Once
 func installWasmer() {
 	cmd := exec.Command("sh", "-c", installWasmer_cmd)
 	// Don't install in $HOME, but /tmp, and don't crate full verbose logs
-	cmd.Env = append(cmd.Env, "WASMER_DIR=" + wasmerDir, "WASMER_INSTALL_LOG=quiet")
+	cmd.Env = append(cmd.Env, "WASMER_DIR="+wasmerDir, "WASMER_INSTALL_LOG=quiet")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		l.Printf("Error running wasmer installer: %v\n", err)
@@ -265,19 +287,13 @@ func createProgram(lang, code string) (string, error) {
 // executable.  Returns the name of the executable (if created) and
 // errors encountered running the compiler.
 // compileProgram selects the right compiler based on lang
-func compileProgram(code, lang string) (string, error) {
-	switch lang {
-	case "go":
-		return callGoCompiler(code)
-	case "c":
-		return callGccCompiler(code)
-	case "cpp":
-		return callGppCompiler(code)
-	case "rust": // The frontend uses "rust" instead if "rs" for the monaco editor
-		return callRustCompiler(code)
-	default:
-		return "", fmt.Errorf("unsupported language: %s", lang)
+func compileProgram(file, lang string) (string, error) {
+	for _, c := range compilers {
+		if c.SourceExt() == lang {
+			return c.Compile(file)
+		}
 	}
+	return "", fmt.Errorf("unsupported language: %s", lang)
 }
 
 type Result struct {

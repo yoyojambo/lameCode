@@ -92,7 +92,6 @@ func tryBetterTitle(challenge *data.Challenge) {
 }
 
 func fromChallenge(challenge data.Challenge) ApiChallenge {
-
 	return ApiChallenge{
 		Id:    challenge.ID,
 		Title: challenge.Title,
@@ -104,28 +103,17 @@ func fromChallenge(challenge data.Challenge) ApiChallenge {
 
 func problemFunc(ctx *gin.Context) {
 	problemId_str := ctx.Param("id")
-	problemId, err := strconv.Atoi(problemId_str)
+	problemId, err := strconv.ParseInt(problemId_str, 10, 64)
 	if err != nil {
 		ctx.AbortWithError(500, err)
 	}
 
-	p, err := data.Repository().GetChallenge(ctx, int64(problemId))
+	p, err := data.Repository().GetChallenge(ctx, problemId)
 	if err != nil {
 		ctx.AbortWithError(500, err)
 	}
 
 	tryBetterTitle(&p)
-
-	data := gin.H{
-		"User": User{
-			LoggedIn: false,
-		},
-
-		// fromChallenge creates an object with the unescaped Descrtiption
-		"Problem": fromChallenge(p),
-
-		"LanguageOptions": judge.LanguageOptions(),
-	}
 
 	// Handle caching
 	ctx.Header("Vary", "HX-Boosted")
@@ -139,7 +127,20 @@ func problemFunc(ctx *gin.Context) {
 	if ctx.GetHeader("HX-Request") == "true" {
 		tmpl = "problem"
 	}
-	ctx.HTML(http.StatusOK, tmpl, data)
+	go func() {
+		l.Println(judge.LanguageOptions())
+	}()
+
+	ctx.HTML(http.StatusOK, tmpl, gin.H{
+		"User": User{
+			LoggedIn: false,
+		},
+
+		// fromChallenge creates an object with the unescaped Descrtiption
+		"Problem": fromChallenge(p),
+
+		"LanguageOptions": judge.LanguageOptions(),
+	})
 }
 
 func problemSetFunc(ctx *gin.Context) {
