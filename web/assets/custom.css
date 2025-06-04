@@ -1,8 +1,18 @@
 body {
-      background-color: #f0f0f0;
-      margin: 0;
-      padding: 0;
-	  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+button {
+    display: inline-flex;
+    align-items: center;
+}
+
+button:disabled {
+    color: #b8b8b8;
+    background-color: #6e6e6e;
 }
 
 /* NavBar styling */
@@ -10,15 +20,15 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-	margin: 0 auto;
+    margin: 0 auto;
     margin-bottom: 10px;
-	margin-top: 5px;
+    margin-top: 5px;
     background-color: #ffffff;
     border: 1px solid #ccc;
     border-radius: 4px;
     padding: 5px 10px;
-	/* max-width: 1200px; */
-	max-width: 55%;
+    /* max-width: 1200px; */
+    max-width: 55%;
 }
 
 .navbar a {
@@ -35,9 +45,9 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 1rem;
-	
-	background-color: #fff;
-	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .box {
@@ -48,15 +58,21 @@ body {
     margin-bottom: 1rem;
 }
 
+.title {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, 0%);
+}
+
 /* ── Difficulty badges ───────────────────────── */
 .difficulty {
-	display: inline-block;
-	background-color: #aaaaaa;
-	padding: 0.2rem 0.6rem;
-	border-radius: 4px;
-	color: #fff;
-	font-size: 0.8em;
-	margin-bottom: 0.5rem;
+    display: inline-block;
+    background-color: #aaaaaa;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 0.8em;
+    margin-bottom: 0.5rem;
 }
 
 .difficulty.easy   { background-color: #28a745; }
@@ -65,11 +81,11 @@ body {
 
 /* ── Avatar (now shared) ─────────────────────── */
 .avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  vertical-align: middle;
-  margin-right: 0.5rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    vertical-align: middle;
+    margin-right: 0.5rem;
 }
 
 /* ── HTMX spinner ────────────────────────────── */
@@ -78,91 +94,91 @@ body.htmx-request .spinner { display: inline-block; }
 
 /* ── Editor container basics ─────────────────── */
 .editor-container {
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    height: 100%;
 }
 #code-editor {
-  flex: 1 1 auto;
-  min-height: 300px;
-  border: 1px solid #ccc;
+    flex: 1 1 auto;
+    min-height: 300px;
+    border: 1px solid #ccc;
 }
 .results {
-  height: 200px;
-  border: 1px solid #ccc;
-  overflow: auto;
+    height: 200px;
+    border: 1px solid #ccc;
+    overflow: auto;
 }
 
 /* ── Tabs ────────────────────────────────────── */
 .editor-tabs { margin-bottom: 0.5rem; }
 .tab-button {
-  background: #e9ecef;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  margin-right: 0.5rem;
-  outline: none;
+    background: #e9ecef;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    margin-right: 0.5rem;
+    outline: none;
 }
 .tab-button.active {
-  background-color: #d1d3d4;
-  border-bottom: 2px solid #000;
+    background-color: #d1d3d4;
+    border-bottom: 2px solid #000;
 }
 .tab-content {
-  background-color: #f8f8f8;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 0.5rem;
-  min-height: 300px;
+    background-color: #f8f8f8;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 0.5rem;
+    min-height: 300px;
 }
 
 /* ── Textarea styling ────────────────────────── */
 .code-textarea {
-  width: 100%;
-  border: none;
-  background: transparent;
-  resize: none;
-  font-family: monospace;
-  font-size: 0.9rem;
-  outline: none;
-  height: 300px;
+    width: 100%;
+    border: none;
+    background: transparent;
+    resize: none;
+    font-family: monospace;
+    font-size: 0.9rem;
+    outline: none;
+    height: 300px;
 }
 
 /* ── Dropdown & modal ────────────────────────── */
 .editor-bottom-bar { text-align: right; margin-top: 1rem; }
 .dropdown { position: relative; display: inline-block; }
 .dropdown-content {
-  display: none;
-  position: absolute;
-  right: 0;
-  background-color: #fff;
-  border: 1px solid #ccc;
-  min-width: 100px;
-  z-index: 999;
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    min-width: 100px;
+    z-index: 999;
 }
 .dropdown:hover .dropdown-content { display: block; }
 .dropdown-content a {
-  display: block;
-  padding: 0.5rem;
-  text-decoration: none;
-  color: #333;
+    display: block;
+    padding: 0.5rem;
+    text-decoration: none;
+    color: #333;
 }
 .dropdown-content a:hover { background-color: #f2f2f2; }
 
 .modal {
-  display: none;
-  position: fixed;
-  z-index: 1000;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
 }
 .modal-content {
-  background: #fff;
-  margin: 10% auto;
-  padding: 1rem;
-  width: 400px;
-  border-radius: 4px;
+    background: #fff;
+    margin: 10% auto;
+    padding: 1rem;
+    width: 400px;
+    border-radius: 4px;
 }
 
 .modal-header { font-weight: bold; margin-bottom: 1rem; }
@@ -250,83 +266,83 @@ body.htmx-request .spinner { display: inline-block; }
 
 /* /\* ── Links ────────────────────────────────────── *\/ */
 .challengeList a:hover {
-  background-color: #c4c4c4;
-  border-color: #ddd;
+    background-color: #c4c4c4;
+    border-color: #ddd;
 }
 
 
 /* For the login page */
 .auth-container {
-  max-width: 400px;
-  margin: 15vh auto;    /* roughly 15% down from top, auto horizontal */
-  padding: 2em;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: 15vh auto;    /* roughly 15% down from top, auto horizontal */
+    padding: 2em;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Hide/show panels */
 .auth-panel {
-	display: none;
-	border-top: 3rem;
+    display: none;
+    border-top: 3rem;
 }
 .auth-panel.active {
-  display: block;
+    display: block;
 }
 
 /* Panel headers */
 .auth-title {
-  margin-bottom: 1em;
-  text-align: center;
-  font-size: 3rem;
-  color: #333;
+    margin-bottom: 1em;
+    text-align: center;
+    font-size: 3rem;
+    color: #333;
 }
 
 /* Flash message area */
 .flash-message {
-  margin-bottom: 1em;
-  padding: 10px;
-  border-radius: 15px;
-  font-size: 1.5rem;
+    margin-bottom: 1em;
+    padding: 10px;
+    border-radius: 15px;
+    font-size: 1.5rem;
 }
 .flash-message.error {
-  background: #ffe5e5;
-  color: #a33;
+    background: #ffe5e5;
+    color: #a33;
 }
 .flash-message.success {
-  background: #e5ffea;
-  color: #2a7;
+    background: #e5ffea;
+    color: #2a7;
 }
 
 /* Form layout inside each panel */
 .auth-panel form {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 .auth-panel label {
-  margin-top: 1em;
-  font-weight: 600;
+    margin-top: 1em;
+    font-weight: 600;
 }
 .auth-panel input {
-  margin-top: 0.25em;
-  margin-bottom: 0.5em;
+    margin-top: 0.25em;
+    margin-bottom: 0.5em;
 }
 
 /* Full-width submit buttons */
 .auth-panel button {
-  margin-top: 1.5em;
+    margin-top: 1.5em;
 }
 
 /* Bottom “switch” link */
 .auth-switch {
-  text-align: center;
-  margin-top: 1.5em;
-  font-size: 1.5rem;
+    text-align: center;
+    margin-top: 1.5em;
+    font-size: 1.5rem;
 }
 .auth-switch a {
-  color: #007bff;
-  text-decoration: none;
+    color: #007bff;
+    text-decoration: none;
 }
 .auth-switch a:hover {
-  text-decoration: underline;
+    text-decoration: underline;
 }

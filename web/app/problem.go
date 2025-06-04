@@ -203,11 +203,11 @@ type ChallengePage struct {
 func getPageData(ctx *gin.Context, page int64) (ChallengePage, error) {
 	repo := data.Repository()
 
-	const pageSize = 30
+	const pageSize = 10
 	offset := (page - 1) * pageSize
 
 	// Query the paginated challenges.
-	challenges_data, err := repo.GetChallengesPaginated(ctx, pageSize, offset)
+	challenges_data, err := repo.GetChallengesPaginated(ctx, pageSize + 1, offset)
 	if err != nil {
 		l.Printf("error fetching paginated challenges: %v", err)
 		return ChallengePage{}, err
@@ -224,7 +224,7 @@ func getPageData(ctx *gin.Context, page int64) (ChallengePage, error) {
 	// Determine if previous and next pages exist.
 	hasPrev := page > 1
 	// Assume there is a next page unless less than pagesize challenges returned
-	hasNext := len(challenges_data) == pageSize
+	hasNext := len(challenges_data) > pageSize
 
 	// Build the page structure.
 	return ChallengePage{

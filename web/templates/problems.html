@@ -7,8 +7,7 @@
   {{- block "problemTable" .}}
   <title>Home</title>
   <div id="main" class="container">
-	<h1 style="text-align: center">All Challenges</h1>
-	
+    <h2 class="title" style="text-align: center">Most Popular Challenges</h1>
 	{{- if .Challenges}}
 	{{ template "challengeList" .}}
 	{{ else }}
@@ -24,25 +23,27 @@
 
 {{define "challengeList"}}
 <div id="challenges" class="challengeList">
-  {{- if .HasPrev }}
   <button 
+    {{- if not .HasPrev }}
+    disabled
+    {{end}}
     hx-get="/problemlist?page={{ .PrevPage }}" 
     hx-target="#challenges" 
     hx-swap="outerHTML" 
     style="padding: 10px; cursor: pointer;">
     << Back
        </button>
-  {{end}}
 
-  {{- if .HasNext }}
   <button 
+    {{- if not .HasNext }}
+    disabled
+    {{- end }}
     hx-get="/problemlist?page={{ .NextPage }}" 
     hx-target="#challenges" 
     hx-swap="outerHTML" 
     style="padding: 10px; cursor: pointer;">
     Next >>
   </button>
-  {{- end }}
 
   <table
     hx-boost="true"
@@ -52,7 +53,7 @@
   >
     <thead>
       <tr>
-        <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: left;">
+        <th style="width: 80%; padding: 10px; border-bottom: 1px solid #ddd; text-align: left;">
           Challenge
         </th>
         <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: left;">
@@ -66,11 +67,10 @@
     <tbody>
       {{- range .Challenges }}
       <tr>
-        <td style="padding: 10px; border-bottom: 1px solid #eee;">
+        <td style="padding: 0; border-bottom: 1px solid #eee;">
           <a
             href="/problem/{{ .ID }}#"
-            style="text-decoration: none; color: inherit; display: block;"
-          >
+            style="padding: 10px; text-decoration: none; color: inherit; display: block;">
             <b>{{ .Title }}</b>
           </a>
         </td>
