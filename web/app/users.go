@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"lameCode/platform/data"
 	"net/http"
@@ -38,10 +39,21 @@ func loginUserFunc(ctx *gin.Context) {
 		return
 	}
 
+	// Message should always be consistent, so as to not give away which case occurred
+	passwordMsg := "User or password is incorrect"
+
 	repo := data.Repository()
 
 	user, err := repo.GetUserByName(ctx.Request.Context(), req.Username)
-	if err != nil {
+	if err != nil { // Anything else
+		if strings.Contains(err.Error(), "no rows") { // If user not found
+			ctx.HTML(http.StatusOK, "login-message",
+				gin.H{
+					"type": "error",
+					"message": passwordMsg})
+
+			return
+		}
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
@@ -53,13 +65,23 @@ func loginUserFunc(ctx *gin.Context) {
 	}
 
 	if err := bcrypt.CompareHashAndPassword(hash, user.PasswordHash); err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			ctx.HTML(http.StatusOK, "login-message",
+				gin.H{
+					"type": "error",
+					"message": passwordMsg})
+
+			return
+		}
 		l.Printf("Comparison of hash %s and %s failed: %v\n",
 			hash, user.PasswordHash, err)
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
+	// TODO: JWT creation and user session middleware
 	l.Printf("Logged in as %s!\n", req.Username)
+	ctx.Header("HX-Redirect", "/")
 }
 
 func registerUserFunc(ctx *gin.Context) {
