@@ -1,16 +1,15 @@
 package app
 
 import (
-	"lameCode/platform/config"
 	"lameCode/platform/data"
 	"lameCode/platform/judge"
-	"strings"
 
-	"html/template"
-	"log"
-	"net/http"
 	"os"
+	"log"
+	"strings"
 	"strconv"
+	"net/http"
+	"html/template"
 
 	"github.com/gin-gonic/gin"
 
@@ -23,8 +22,8 @@ var l = log.New(os.Stdout, "[app] ", log.LstdFlags|log.Lmsgprefix)
 
 func LoadProblemHandlers(r *gin.Engine) {
 	r.GET("/", problemSetFunc)
-	r.GET("/problemlist", problemsSetPageFunc)
-	r.GET("/problem/:id", problemFunc)
+	r.GET("/problemlist", enableHtmxCache, problemsSetPageFunc)
+	r.GET("/problem/:id", enableHtmxCache, problemFunc)
 }
 
 // Local representation of a challenge
@@ -115,14 +114,6 @@ func problemFunc(ctx *gin.Context) {
 
 	tryBetterTitle(&p)
 
-	// Handle caching
-	ctx.Header("Vary", "HX-Boosted")
-	if !config.Debug() {
-		ctx.Header("Cache-Control", "public, max-age=1800")
-	} else {
-		ctx.Header("Cache-Control", "max-age=600, must-revalidate")
-	}
-
 	tmpl := "problem.html"
 	if ctx.GetHeader("HX-Request") == "true" {
 		tmpl = "problem"
@@ -144,27 +135,18 @@ func problemFunc(ctx *gin.Context) {
 }
 
 func problemSetFunc(ctx *gin.Context) {
-	// Handle caching
-	ctx.Header("Vary", "HX-Boosted")
-	if !config.Debug() {
-		ctx.Header("Cache-Control", "public, max-age=1800")
-	} else {
-		ctx.Header("Cache-Control", "max-age=600, must-revalidate")
-	}
-
 	// Generate data
-	tmpl := "problems.html"
-	if ctx.GetHeader("HX-Request") == "true" {
-		tmpl = "problemTable"
-	}
-
 	pageData, err := getPageData(ctx, 1)
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
-	ctx.HTML(http.StatusOK, tmpl, pageData)
+	if ctx.GetHeader("HX-Request") == "true" {
+		ctx.HTML(http.StatusOK, "problemTable", pageData)
+	} else {
+		ctx.HTML(http.StatusOK, "problems.html", pageData)
+	}
 }
 
 func problemsSetPageFunc(ctx *gin.Context) {
@@ -201,13 +183,12 @@ type ChallengePage struct {
 }
 
 func getPageData(ctx *gin.Context, page int64) (ChallengePage, error) {
-	repo := data.Repository()
-
 	const pageSize = 10
 	offset := (page - 1) * pageSize
 
 	// Query the paginated challenges.
-	challenges_data, err := repo.GetChallengesPaginated(ctx, pageSize + 1, offset)
+	challenges_data, err := data.Repository().GetChallengesPaginated(ctx, pageSize + 1, offset)
+
 	if err != nil {
 		l.Printf("error fetching paginated challenges: %v", err)
 		return ChallengePage{}, err

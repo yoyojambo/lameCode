@@ -12,7 +12,7 @@ import (
 )
 
 func LoadUserHandlers(r *gin.Engine) {
-	r.GET("/login", loginPageFunc)
+	r.GET("/login", enableHtmxCache, loginPageFunc)
 	
 	r.POST("/login", loginUserFunc)
 	r.POST("/register", registerUserFunc)
@@ -23,9 +23,9 @@ func loginPageFunc(ctx *gin.Context) {
 		l.Println("Printing full login template")
 		l.Println(boost)
 		ctx.HTML(http.StatusOK, "login.html", gin.H{})
-		return
+	} else {
+		ctx.HTML(http.StatusOK, "login", gin.H{})
 	}
-	ctx.HTML(http.StatusOK, "login", gin.H{})
 }
 
 func loginUserFunc(ctx *gin.Context) {
