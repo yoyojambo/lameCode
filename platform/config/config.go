@@ -5,6 +5,7 @@ package config
 
 import (
 	"flag"
+	"lameCode/platform/session"
 )
 
 const (
@@ -14,13 +15,14 @@ const (
 
 // Usage messages
 const (
-	db_file_usage    = "File with persistent SQLite database. (defaults to " + DEFAULT_SQLITE_DB_FILE + ")"
-	env_file_usage   = "File with application configuration. Values set in env file OVERRIDE values set by other flags. (defaults to " + DEFAULT_DOT_ENV + ")"
-	create_db_usage  = "Try to apply schema, will not crash if it can't."
-	debug_usage      = "Runs server in debug mode, with more logs. (defaults to false)"
-	remote_usage     = "The provided database path is a Turso database URL. (defaults to false)"
-	auth_token_usage = "Token to access turso database. NOT RECOMMENDED, USE ENVIRONMENT VARIABLES INSTEAD."
-	install_wasmer_usage = "Indicates whether to run wasmer.io installer script if no WASM runtime is found"
+	db_file_usage        = "File with persistent SQLite database. (defaults to " + DEFAULT_SQLITE_DB_FILE + ")"
+	env_file_usage       = "File with application configuration. Values set in env file OVERRIDE values set by other flags. (defaults to " + DEFAULT_DOT_ENV + ")"
+	create_db_usage      = "Try to apply schema, will not crash if it can't."
+	debug_usage          = "Runs server in debug mode, with more logs. (defaults to false)"
+	remote_usage         = "The provided database path is a Turso database URL. (defaults to false)"
+	auth_token_usage     = "Token to access turso database. NOT RECOMMENDED, USE ENVIRONMENT VARIABLES INSTEAD."
+	install_wasmer_usage = "Indicates whether to run wasmer.io installer script if no WASM runtime is found."
+	jwt_secret_usage     = "Sets a secret to sign and verify JWT tokens for user sessions. Multiplexing requests between multiple instances naively will require to set this to a shared secret."
 )
 
 // Flags that can be set from command line
@@ -32,6 +34,7 @@ var (
 	remote         bool
 	turso_auth     string
 	install_wasmer bool
+	jwt_secret     string
 )
 
 // Activate flags designated for server configuration.
@@ -46,6 +49,7 @@ func LoadServerFlags() {
 	flag.BoolVar(&debug, "debug", false, debug_usage)
 	flag.BoolVar(&remote, "remote", false, remote_usage)
 	flag.BoolVar(&install_wasmer, "install-wasmer", false, install_wasmer_usage)
+	flag.StringVar(&jwt_secret, "jwt_secret", session.GenerateRandJwtSecret(), jwt_secret_usage)
 }
 
 func DbUrl() string {
@@ -70,4 +74,12 @@ func InstallWasmer() bool {
 
 func ApplySchema() bool {
 	return create
+}
+
+func JwtSecret() string {
+	return jwt_secret
+}
+
+func JwtSecretBytes() []byte {
+	return []byte(jwt_secret)
 }
