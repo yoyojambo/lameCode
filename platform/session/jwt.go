@@ -1,6 +1,7 @@
 package session
 
 import (
+	"errors"
 	"fmt"
 	"lameCode/platform/config"
 	"time"
@@ -8,18 +9,25 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-
 const TokenExpTimeOffset = time.Hour * 8
 
-// CreateJwtToken returns a new jwt.Token object, set with the `sub`
-// to the username parameter and `aud` as the level of access of the
-// user.
-// That level of acces can be one of "user" and "admin", but
-// can be further extended later.
+var (
+	ErrInvalidAccess     = errors.New("invalid access level")
+	ErrInvalidToken      = errors.New("token is invalid")
+	ErrInvalidClaimsType = errors.New("invalid claims type")
+	ErrEmptyUsername     = errors.New("username cannot be empty")
+	ErrEmptyToken        = errors.New("token string cannot be empty")
+	ErrMissingClaims     = errors.New("missing required claims")
+)
+
 func createJwtToken(username, access string) (*jwt.Token, error) {
-	if access != "user" && access != "admin"{
-		return nil, fmt.Errorf("Not a valid access value")
+	if username == "" {
+		return nil, ErrEmptyUsername
 	}
+	if access != "user" && access != "admin" {
+		return nil, fmt.Errorf("%w: got %q, expected 'user' or 'admin'", ErrInvalidAccess, access)
+	}
+
 	claim := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": username,
 		"aud": access,
@@ -35,10 +43,15 @@ func createJwtToken(username, access string) (*jwt.Token, error) {
 func CreateSignedJwtToken(username, access string) (string, error) {
 	tok, err := createJwtToken(username, access)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create JWT token: %w", err)
 	}
 
-	return tok.SignedString(config.JwtSecret)
+	signedToken, err := tok.SignedString(config.JwtSecret)
+	if err != nil {
+		return "", fmt.Errorf("failed to sign JWT token: %w", err)
+	}
+	
+	return signedToken, nil
 }
 
 func keyFunc(t *jwt.Token) (interface{}, error) {
@@ -46,19 +59,23 @@ func keyFunc(t *jwt.Token) (interface{}, error) {
 }
 
 func VerifyJwtToken(tokenStr string) (*jwt.Token, error) {
+	if tokenStr == "" {
+		return nil, ErrEmptyToken
+	}
+
 	token, err := jwt.Parse(tokenStr, keyFunc, jwt.WithValidMethods([]string{"HS256"}))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse JWT token: %w", err)
 	}
 
-	// Still not sure what would trigger this, does a mismatch on the
-	// signature not set err in jwt.Parse? 
-	if !token.Valid {
-		return nil, fmt.Errorf("Token found invalid after parse")
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, ErrInvalidClaimsType
 	}
 
-	if _, ok := token.Claims.(jwt.MapClaims); !ok {
-		return nil, fmt.Errorf("Invalid claims type, expected jwt.MapClaims")
+	// Validate required claims exist
+	if claims["sub"] == nil || claims["aud"] == nil {
+		return nil, ErrMissingClaims
 	}
 
 	return token, nil
