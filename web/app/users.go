@@ -21,14 +21,6 @@ func LoadUserHandlers(r *gin.RouterGroup) {
 	r.GET("/logout", logoutUserFunc)
 }
 
-func loginPageFunc(ctx *gin.Context) {
-	if boost := ctx.Request.Header["Hx-Boosted"]; len(boost) == 0 {
-		ctx.HTML(http.StatusOK, "login.html", gin.H{})
-	} else {
-		ctx.HTML(http.StatusOK, "login", gin.H{})
-	}
-}
-
 func setSessionCookieFromToken(ctx *gin.Context, tok string, maxAge int) {
 	ctx.SetCookie(session.SessionCookieName, tok, maxAge, "/", ctx.Request.Host, true, true)
 }
@@ -37,6 +29,15 @@ func setSessionCookieFromToken(ctx *gin.Context, tok string, maxAge int) {
 func logoutUserFunc(ctx *gin.Context) {
 	setSessionCookieFromToken(ctx, "", 1)
 	ctx.Header("HX-Redirect", "/login")
+}
+
+// Login an Register pages
+func loginPageFunc(ctx *gin.Context) {
+	if boost := ctx.Request.Header["Hx-Boosted"]; len(boost) == 0 {
+		ctx.HTML(http.StatusOK, "login.html", gin.H{})
+	} else {
+		ctx.HTML(http.StatusOK, "login", gin.H{})
+	}
 }
 
 func loginUserFunc(ctx *gin.Context) {

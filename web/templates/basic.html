@@ -13,7 +13,7 @@
 	<b>
     {{- if .LoggedIn }}
     {{/* <img src="{{ .User.Avatar }}" alt="Avatar" class="avatar"> */}}
-	<a href="/user">{{- .Username -}}</a>
+	<a href="/user/{{.Username}}">{{- .Username -}}</a>
     {{ else }}
     <span>Anonymous</span>
     {{- end }}
