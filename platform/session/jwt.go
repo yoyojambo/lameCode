@@ -46,7 +46,7 @@ func CreateSignedJwtToken(username, access string) (string, error) {
 		return "", fmt.Errorf("failed to create JWT token: %w", err)
 	}
 
-	signedToken, err := tok.SignedString(config.JwtSecret)
+	signedToken, err := tok.SignedString(config.JwtSecretBytes())
 	if err != nil {
 		return "", fmt.Errorf("failed to sign JWT token: %w", err)
 	}
@@ -55,7 +55,7 @@ func CreateSignedJwtToken(username, access string) (string, error) {
 }
 
 func keyFunc(t *jwt.Token) (interface{}, error) {
-	return config.JwtSecret, nil
+	return config.JwtSecretBytes(), nil
 }
 
 func VerifyJwtToken(tokenStr string) (*jwt.Token, error) {
@@ -63,7 +63,8 @@ func VerifyJwtToken(tokenStr string) (*jwt.Token, error) {
 		return nil, ErrEmptyToken
 	}
 
-	token, err := jwt.Parse(tokenStr, keyFunc, jwt.WithValidMethods([]string{"HS256"}))
+	token, err := jwt.Parse(tokenStr, keyFunc,
+		jwt.WithValidMethods([]string{"HS256"}))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse JWT token: %w", err)
 	}

@@ -16,7 +16,7 @@ type Submission struct {
 	Code     string `form:"code" binding:"required"`
 }
 
-func LoadJudgeHandlers(r *gin.Engine) {
+func LoadJudgeHandlers(r *gin.RouterGroup) {
 	g := r.Group("/judge")
 	g.POST("/test/:id", testSubmission)
 	g.POST("/submit/:id", printSubmission)

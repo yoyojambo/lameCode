@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-  {{ template "head" "Login"}}
+  {{ template "head"}}
   <body>
-	{{ template "navbar" -}}
+	{{ template "navbar" .User -}}
 
-	{{block "login" . -}}
+	{{block "login" .Data -}}
 	<title>Login</title>
 	<div id="main" class="container auth-container">
 

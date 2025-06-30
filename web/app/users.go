@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"lameCode/platform/data"
+	"lameCode/platform/session"
 	"net/http"
 	"strings"
 
@@ -11,21 +12,31 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func LoadUserHandlers(r *gin.Engine) {
+func LoadUserHandlers(r *gin.RouterGroup) {
 	r.GET("/login", enableHtmxCache, loginPageFunc)
 	
 	r.POST("/login", loginUserFunc)
 	r.POST("/register", registerUserFunc)
+
+	r.GET("/logout", logoutUserFunc)
 }
 
 func loginPageFunc(ctx *gin.Context) {
 	if boost := ctx.Request.Header["Hx-Boosted"]; len(boost) == 0 {
-		l.Println("Printing full login template")
-		l.Println(boost)
 		ctx.HTML(http.StatusOK, "login.html", gin.H{})
 	} else {
 		ctx.HTML(http.StatusOK, "login", gin.H{})
 	}
+}
+
+func setSessionCookieFromToken(ctx *gin.Context, tok string, maxAge int) {
+	ctx.SetCookie(session.SessionCookieName, tok, maxAge, "/", ctx.Request.Host, true, true)
+}
+
+// Just unsets the cookie and does clean pull for the login page
+func logoutUserFunc(ctx *gin.Context) {
+	setSessionCookieFromToken(ctx, "", 1)
+	ctx.Header("HX-Redirect", "/login")
 }
 
 func loginUserFunc(ctx *gin.Context) {
@@ -35,7 +46,7 @@ func loginUserFunc(ctx *gin.Context) {
 	}
 
 	if err := ctx.ShouldBind(&req); err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.AbortWithError(http.StatusBadRequest, fmt.Errorf("could not bind login form: %w", err))
 		return
 	}
 
@@ -80,8 +91,20 @@ func loginUserFunc(ctx *gin.Context) {
 	}
 
 	// TODO: JWT creation and user session middleware
+	access := "user"
+	if user.IsAdmin == 1 {
+		access = "admin"
+	}
+
+	newToken, err := session.CreateSignedJwtToken(user.Username, access)
+	if err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError,
+			fmt.Errorf("could not create and sign new token: %w", err))
+	}
+
 	l.Printf("Logged in as %s!\n", req.Username)
 	ctx.Header("HX-Redirect", "/")
+	setSessionCookieFromToken(ctx, newToken, 99999)
 }
 
 func registerUserFunc(ctx *gin.Context) {
@@ -131,13 +154,23 @@ func registerUserFunc(ctx *gin.Context) {
 					"message": fmt.Sprintf("User %s already exists...", req.Username)})
 			
 		} else {
-			ctx.AbortWithError(http.StatusInternalServerError, err)
+			ctx.AbortWithError(http.StatusInternalServerError,
+				fmt.Errorf("could not create new user in DB: %w", err))
 		}
 		return
 	}
 
 	l.Printf("Created new user %s with ID %d\n", req.Username, userID)
 
+	// Can only create a normal user, of course
+	// TODO: Maybe be able to add a new admin if already an admin??
+	newToken, err := session.CreateSignedJwtToken(req.Username, "user")
+	if err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError,
+			fmt.Errorf("could not create and sign new token: %w", err))
+	}
+
 	// Redirect to homepage
 	ctx.Header("HX-Redirect", "/")
+	setSessionCookieFromToken(ctx, newToken, 999999)
 }

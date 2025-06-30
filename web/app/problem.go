@@ -4,12 +4,12 @@ import (
 	"lameCode/platform/data"
 	"lameCode/platform/judge"
 
-	"os"
-	"log"
-	"strings"
-	"strconv"
-	"net/http"
 	"html/template"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -20,7 +20,7 @@ import (
 
 var l = log.New(os.Stdout, "[app] ", log.LstdFlags|log.Lmsgprefix)
 
-func LoadProblemHandlers(r *gin.Engine) {
+func LoadProblemHandlers(r *gin.RouterGroup) {
 	r.GET("/", problemSetFunc)
 	r.GET("/problemlist", enableHtmxCache, problemsSetPageFunc)
 	r.GET("/problem/:id", enableHtmxCache, problemFunc)
@@ -101,6 +101,9 @@ func fromChallenge(challenge data.Challenge) ApiChallenge {
 }
 
 func problemFunc(ctx *gin.Context) {
+	// Let it check compilers in the background, so it can cache it
+	go l.Println(judge.LanguageOptions())
+
 	problemId_str := ctx.Param("id")
 	problemId, err := strconv.ParseInt(problemId_str, 10, 64)
 	if err != nil {
@@ -114,24 +117,18 @@ func problemFunc(ctx *gin.Context) {
 
 	tryBetterTitle(&p)
 
-	tmpl := "problem.html"
-	if ctx.GetHeader("HX-Request") == "true" {
-		tmpl = "problem"
-	}
-	go func() {
-		l.Println(judge.LanguageOptions())
-	}()
-
-	ctx.HTML(http.StatusOK, tmpl, gin.H{
-		"User": User{
-			LoggedIn: false,
-		},
-
+	data := gin.H{
 		// fromChallenge creates an object with the unescaped Descrtiption
 		"Problem": fromChallenge(p),
 
 		"LanguageOptions": judge.LanguageOptions(),
-	})
+	}
+
+	if ctx.GetHeader("HX-Request") == "true" {
+		ctx.HTML(http.StatusOK, "problem", data)
+	} else {
+		RenderHTML(ctx, http.StatusOK, "problem.html", data)
+	}
 }
 
 func problemSetFunc(ctx *gin.Context) {
@@ -145,14 +142,13 @@ func problemSetFunc(ctx *gin.Context) {
 	if ctx.GetHeader("HX-Request") == "true" {
 		ctx.HTML(http.StatusOK, "problemTable", pageData)
 	} else {
-		ctx.HTML(http.StatusOK, "problems.html", pageData)
+		RenderHTML(ctx, http.StatusOK, "problems.html", pageData)
 	}
 }
 
 func problemsSetPageFunc(ctx *gin.Context) {
 	pageStr := ctx.Query("page")
 
-	//page, err := strconv.Atoi(pageStr)
 	page, err := strconv.ParseInt(pageStr, 10, 64) // Straigt to int64
 	if err != nil || page < 1 {
 		page = 1
@@ -169,6 +165,7 @@ func problemsSetPageFunc(ctx *gin.Context) {
 	if len(pageData.Challenges) == 0 {
 		l.Println("Not showing any challenges")
 	}
+
 	ctx.HTML(http.StatusOK, "challengeList", pageData)
 }
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"lameCode/platform/session"
 	"lameCode/web/app"
 	"log"
 	"os"
@@ -30,10 +31,13 @@ func loadRoutes(r *gin.Engine) {
 	// Should ideally only be a bunch of pkg.LoadPkgHandlers(r)
 	// That does require packages to "own" their subroutes.
 
-	//users.LoadUsersHandlers(r) // / /users/ /login
-	app.LoadProblemHandlers(r) // /problems /problem/:id
-	app.LoadJudgeHandlers(r)   // /judge/test /judge/submit
-	app.LoadUserHandlers(r)    // /login /register
+	// All the dynamic handlers are expecting user-personalized
+	// responses, so OptionalAuth is the default, but stricter session
+	// requirements can be defined per-handler
+	dynamic := r.Group("/", session.OptionalAuthRoute())
+	app.LoadProblemHandlers(dynamic) // /problems /problem/:id
+	app.LoadJudgeHandlers(dynamic)   // /judge/test /judge/submit
+	app.LoadUserHandlers(dynamic)    // /login /register
 }
 
 
