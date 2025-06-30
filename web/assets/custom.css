@@ -6,7 +6,6 @@ body {
 }
 
 button {
-    display: inline-flex;
     align-items: center;
 }
 
@@ -344,5 +343,140 @@ body.htmx-request .spinner { display: inline-block; }
     text-decoration: none;
 }
 .auth-switch a:hover {
+    text-decoration: underline;
+}
+
+
+/* User profile classes */
+/* ── User Profile Styles ────────────────────── */
+.profile-admin-badge {
+    background: #ff6b6b;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.8em;
+    margin-left: 10px;
+}
+
+.profile-user-meta {
+    color: #666;
+    margin-top: 0;
+}
+
+.profile-stat-box {
+    text-align: center;
+}
+
+.profile-stat-box h4 {
+    margin-bottom: 0.25rem;
+    font-size: 2rem;
+    color: #333;
+}
+
+.profile-stat-box p {
+    margin-top: 0;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.profile-difficulty-stats, 
+.profile-language-stats {
+    margin-top: 10px;
+}
+
+.profile-difficulty-row, 
+.profile-language-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.profile-language-row {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.profile-language-name {
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.profile-language-details {
+    display: flex;
+    gap: 10px;
+}
+
+.profile-count, 
+.profile-submission-count, 
+.profile-acceptance-rate {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.status-badge {
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.85em;
+    font-weight: bold;
+}
+
+.status-accepted { 
+    background-color: #28a745; 
+    color: white; 
+}
+
+.status-wrong { 
+    background-color: #dc3545; 
+    color: white; 
+}
+
+.status-error { 
+    background-color: #fd7e14; 
+    color: white; 
+}
+
+.status-pending { 
+    background-color: #6c757d; 
+    color: white; 
+}
+
+.status-unknown {
+    background-color: #6c757d;
+    color: white;
+}
+
+.profile-no-data {
+    color: #666;
+    font-style: italic;
+}
+
+.profile-table {
+    margin-top: 15px;
+}
+
+.profile-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    padding: 8px;
+}
+
+.profile-table td {
+    padding: 8px;
+    vertical-align: middle;
+}
+
+.profile-table tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+.profile-table a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.profile-table a:hover {
     text-decoration: underline;
 }

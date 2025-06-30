@@ -38,6 +38,7 @@ func loadRoutes(r *gin.Engine) {
 	app.LoadProblemHandlers(dynamic) // /problems /problem/:id
 	app.LoadJudgeHandlers(dynamic)   // /judge/test /judge/submit
 	app.LoadUserHandlers(dynamic)    // /login /register
+	app.LoadUserProfileHandlers(dynamic) // /user/:username
 }
 
 

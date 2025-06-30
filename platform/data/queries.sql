@@ -81,3 +81,74 @@ RETURNING *;
 SELECT * FROM user_completed_challenges
 WHERE user_id = ?
 ORDER BY completed_at DESC;
+
+-- name: GetUserStats :one
+SELECT 
+    u.username,
+    u.created_at,
+    u.is_admin,
+    COUNT(DISTINCT ucc.challenge_id) as challenges_completed,
+    COUNT(DISTINCT s.id) as total_solutions,
+    COUNT(DISTINCT CASE WHEN s.status = 'accepted' THEN s.id END) as accepted_solutions,
+    COUNT(DISTINCT CASE WHEN s.status = 'wrong_answer' THEN s.id END) as wrong_answers,
+    COUNT(DISTINCT CASE WHEN s.status = 'runtime_error' THEN s.id END) as runtime_errors
+FROM users u
+LEFT JOIN user_completed_challenges ucc ON u.id = ucc.user_id
+LEFT JOIN solutions s ON u.id = s.user_id
+WHERE u.username = ?
+GROUP BY u.id, u.username, u.created_at, u.is_admin;
+
+-- name: GetUserCompletedChallengesWithDetails :many
+SELECT 
+    c.id as challenge_id,
+    c.title,
+    c.difficulty,
+    c.test_count,
+    ucc.completed_at,
+    s.language,
+    s.runtime_info,
+    s.created_at as solution_created_at
+FROM user_completed_challenges ucc
+JOIN challenges c ON ucc.challenge_id = c.id
+LEFT JOIN solutions s ON ucc.best_solution_id = s.id
+JOIN users u ON ucc.user_id = u.id
+WHERE u.username = ?
+ORDER BY ucc.completed_at DESC;
+
+-- name: GetUserRecentSubmissions :many
+SELECT 
+    s.id,
+    s.challenge_id,
+    c.title as challenge_title,
+    s.language,
+    s.status,
+    s.runtime_info,
+    s.created_at
+FROM solutions s
+JOIN challenges c ON s.challenge_id = c.id
+JOIN users u ON s.user_id = u.id
+WHERE u.username = ?
+ORDER BY s.created_at DESC
+LIMIT ?;
+
+-- name: GetUserDifficultyBreakdown :many
+SELECT 
+    c.difficulty,
+    COUNT(DISTINCT ucc.challenge_id) as completed_count
+FROM user_completed_challenges ucc
+JOIN challenges c ON ucc.challenge_id = c.id
+JOIN users u ON ucc.user_id = u.id
+WHERE u.username = ?
+GROUP BY c.difficulty
+ORDER BY c.difficulty;
+
+-- name: GetUserLanguageStats :many
+SELECT 
+    s.language,
+    COUNT(*) as submission_count,
+    COUNT(CASE WHEN s.status = 'accepted' THEN 1 END) as accepted_count
+FROM solutions s
+JOIN users u ON s.user_id = u.id
+WHERE u.username = ?
+GROUP BY s.language
+ORDER BY submission_count DESC;

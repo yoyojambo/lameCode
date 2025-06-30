@@ -295,6 +295,206 @@ func (q *Queries) GetUserByName(ctx context.Context, username string) (User, err
 	return i, err
 }
 
+const getUserCompletedChallengesWithDetails = `-- name: GetUserCompletedChallengesWithDetails :many
+SELECT 
+    c.id as challenge_id,
+    c.title,
+    c.difficulty,
+    c.test_count,
+    ucc.completed_at,
+    s.language,
+    s.runtime_info,
+    s.created_at as solution_created_at
+FROM user_completed_challenges ucc
+JOIN challenges c ON ucc.challenge_id = c.id
+LEFT JOIN solutions s ON ucc.best_solution_id = s.id
+JOIN users u ON ucc.user_id = u.id
+WHERE u.username = ?
+ORDER BY ucc.completed_at DESC
+`
+
+type GetUserCompletedChallengesWithDetailsRow struct {
+	ChallengeID       int64          `json:"challenge_id"`
+	Title             string         `json:"title"`
+	Difficulty        int64          `json:"difficulty"`
+	TestCount         int64          `json:"test_count"`
+	CompletedAt       int64          `json:"completed_at"`
+	Language          string         `json:"language"`
+	RuntimeInfo       sql.NullString `json:"runtime_info"`
+	SolutionCreatedAt int64          `json:"solution_created_at"`
+}
+
+func (q *Queries) GetUserCompletedChallengesWithDetails(ctx context.Context, username string) ([]GetUserCompletedChallengesWithDetailsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getUserCompletedChallengesWithDetails, username)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserCompletedChallengesWithDetailsRow
+	for rows.Next() {
+		var i GetUserCompletedChallengesWithDetailsRow
+		if err := rows.Scan(
+			&i.ChallengeID,
+			&i.Title,
+			&i.Difficulty,
+			&i.TestCount,
+			&i.CompletedAt,
+			&i.Language,
+			&i.RuntimeInfo,
+			&i.SolutionCreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getUserDifficultyBreakdown = `-- name: GetUserDifficultyBreakdown :many
+SELECT 
+    c.difficulty,
+    COUNT(DISTINCT ucc.challenge_id) as completed_count
+FROM user_completed_challenges ucc
+JOIN challenges c ON ucc.challenge_id = c.id
+JOIN users u ON ucc.user_id = u.id
+WHERE u.username = ?
+GROUP BY c.difficulty
+ORDER BY c.difficulty
+`
+
+type GetUserDifficultyBreakdownRow struct {
+	Difficulty     int64 `json:"difficulty"`
+	CompletedCount int64 `json:"completed_count"`
+}
+
+func (q *Queries) GetUserDifficultyBreakdown(ctx context.Context, username string) ([]GetUserDifficultyBreakdownRow, error) {
+	rows, err := q.db.QueryContext(ctx, getUserDifficultyBreakdown, username)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserDifficultyBreakdownRow
+	for rows.Next() {
+		var i GetUserDifficultyBreakdownRow
+		if err := rows.Scan(&i.Difficulty, &i.CompletedCount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getUserLanguageStats = `-- name: GetUserLanguageStats :many
+SELECT 
+    s.language,
+    COUNT(*) as submission_count,
+    COUNT(CASE WHEN s.status = 'accepted' THEN 1 END) as accepted_count
+FROM solutions s
+JOIN users u ON s.user_id = u.id
+WHERE u.username = ?
+GROUP BY s.language
+ORDER BY submission_count DESC
+`
+
+type GetUserLanguageStatsRow struct {
+	Language        string `json:"language"`
+	SubmissionCount int64  `json:"submission_count"`
+	AcceptedCount   int64  `json:"accepted_count"`
+}
+
+func (q *Queries) GetUserLanguageStats(ctx context.Context, username string) ([]GetUserLanguageStatsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getUserLanguageStats, username)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserLanguageStatsRow
+	for rows.Next() {
+		var i GetUserLanguageStatsRow
+		if err := rows.Scan(&i.Language, &i.SubmissionCount, &i.AcceptedCount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getUserRecentSubmissions = `-- name: GetUserRecentSubmissions :many
+SELECT 
+    s.id,
+    s.challenge_id,
+    c.title as challenge_title,
+    s.language,
+    s.status,
+    s.runtime_info,
+    s.created_at
+FROM solutions s
+JOIN challenges c ON s.challenge_id = c.id
+JOIN users u ON s.user_id = u.id
+WHERE u.username = ?
+ORDER BY s.created_at DESC
+LIMIT ?
+`
+
+type GetUserRecentSubmissionsRow struct {
+	ID             int64          `json:"id"`
+	ChallengeID    int64          `json:"challenge_id"`
+	ChallengeTitle string         `json:"challenge_title"`
+	Language       string         `json:"language"`
+	Status         string         `json:"status"`
+	RuntimeInfo    sql.NullString `json:"runtime_info"`
+	CreatedAt      int64          `json:"created_at"`
+}
+
+func (q *Queries) GetUserRecentSubmissions(ctx context.Context, username string, limit int64) ([]GetUserRecentSubmissionsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getUserRecentSubmissions, username, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserRecentSubmissionsRow
+	for rows.Next() {
+		var i GetUserRecentSubmissionsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ChallengeID,
+			&i.ChallengeTitle,
+			&i.Language,
+			&i.Status,
+			&i.RuntimeInfo,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUserSolutions = `-- name: GetUserSolutions :many
 SELECT id, user_id, challenge_id, code, language, status, runtime_info, created_at FROM solutions
 WHERE user_id = ? AND challenge_id = ?
@@ -331,6 +531,50 @@ func (q *Queries) GetUserSolutions(ctx context.Context, userID int64, challengeI
 		return nil, err
 	}
 	return items, nil
+}
+
+const getUserStats = `-- name: GetUserStats :one
+SELECT 
+    u.username,
+    u.created_at,
+    u.is_admin,
+    COUNT(DISTINCT ucc.challenge_id) as challenges_completed,
+    COUNT(DISTINCT s.id) as total_solutions,
+    COUNT(DISTINCT CASE WHEN s.status = 'accepted' THEN s.id END) as accepted_solutions,
+    COUNT(DISTINCT CASE WHEN s.status = 'wrong_answer' THEN s.id END) as wrong_answers,
+    COUNT(DISTINCT CASE WHEN s.status = 'runtime_error' THEN s.id END) as runtime_errors
+FROM users u
+LEFT JOIN user_completed_challenges ucc ON u.id = ucc.user_id
+LEFT JOIN solutions s ON u.id = s.user_id
+WHERE u.username = ?
+GROUP BY u.id, u.username, u.created_at, u.is_admin
+`
+
+type GetUserStatsRow struct {
+	Username            string `json:"username"`
+	CreatedAt           int64  `json:"created_at"`
+	IsAdmin             int64  `json:"is_admin"`
+	ChallengesCompleted int64  `json:"challenges_completed"`
+	TotalSolutions      int64  `json:"total_solutions"`
+	AcceptedSolutions   int64  `json:"accepted_solutions"`
+	WrongAnswers        int64  `json:"wrong_answers"`
+	RuntimeErrors       int64  `json:"runtime_errors"`
+}
+
+func (q *Queries) GetUserStats(ctx context.Context, username string) (GetUserStatsRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserStats, username)
+	var i GetUserStatsRow
+	err := row.Scan(
+		&i.Username,
+		&i.CreatedAt,
+		&i.IsAdmin,
+		&i.ChallengesCompleted,
+		&i.TotalSolutions,
+		&i.AcceptedSolutions,
+		&i.WrongAnswers,
+		&i.RuntimeErrors,
+	)
+	return i, err
 }
 
 const getUsers = `-- name: GetUsers :many

@@ -48,7 +48,7 @@ func LoadServerFlags() {
 	flag.BoolVar(&debug, "debug", false, debug_usage)
 	flag.BoolVar(&remote, "remote", false, remote_usage)
 	flag.BoolVar(&install_wasmer, "install-wasmer", false, install_wasmer_usage)
-	flag.StringVar(&jwt_secret, "jwt_secret", GenerateRandJwtSecret(), jwt_secret_usage)
+	flag.StringVar(&jwt_secret, "jwt-secret", GenerateRandJwtSecret(), jwt_secret_usage)
 }
 
 func DbUrl() string {
