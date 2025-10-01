@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"lameCode/platform/data"
 	"lameCode/platform/judge"
 	"net/http"
@@ -19,7 +20,7 @@ type Submission struct {
 func LoadJudgeHandlers(r *gin.RouterGroup) {
 	g := r.Group("/judge")
 	g.POST("/test/:id", testSubmission)
-	g.POST("/submit/:id", printSubmission)
+	g.POST("/submit", printSubmission)
 }
 
 // printSubmission is just for testing the frontend
@@ -27,8 +28,8 @@ func LoadJudgeHandlers(r *gin.RouterGroup) {
 func printSubmission(ctx *gin.Context) {
 	var submission Submission
 	if err := ctx.ShouldBind(&submission); err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
-		l.Println(err)
+		ctx.AbortWithError(http.StatusBadRequest,
+			fmt.Errorf("could not bind context to Submission object: %w", err))
 		return
 	}
 
@@ -38,15 +39,16 @@ func printSubmission(ctx *gin.Context) {
 func testSubmission(ctx *gin.Context) {
 	challengeId, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
-		l.Println("Error parsing challenge id in /test:", err)
+		ctx.AbortWithError(http.StatusBadRequest,
+			fmt.Errorf("error parsing challenge id in /test:", err))
+		
 		return
 	}
 
 	var submission Submission
 	if err := ctx.ShouldBind(&submission); err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
-		l.Println(err)
+		ctx.AbortWithError(http.StatusBadRequest,
+			fmt.Errorf("could not bind code submission: %w", err))
 		return
 	}
 
@@ -54,8 +56,9 @@ func testSubmission(ctx *gin.Context) {
 	testCtx := context.Background()
 	tests, err := q.GetTestsForChallenge(testCtx, challengeId)
 	if err != nil {
-		ctx.AbortWithStatus(http.StatusInternalServerError)
-		l.Println("Error getting tests for challenge in test:", err)
+		ctx.AbortWithError(http.StatusInternalServerError,
+			fmt.Errorf("error getting tests for challenge in test:", err))
+		
 		return
 	}
 
@@ -70,8 +73,8 @@ func testSubmission(ctx *gin.Context) {
 			return
 		}
 		// Error in any other phase
-		ctx.AbortWithStatus(http.StatusInternalServerError)
-		l.Println("Error running tests for challenge in test:", err)
+		ctx.AbortWithError(http.StatusInternalServerError,
+			fmt.Errorf("error running tests: %w", err))
 		return
 	}
 	

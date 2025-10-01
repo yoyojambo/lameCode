@@ -46,25 +46,28 @@
 	    <textarea id="code-input" name="code" hidden></textarea>
 
 	    <div class="editor-bottom-bar">
-	      <button id="test-button"
-		      hx-post="/judge/test/{{.Problem.Id}}"
-		      hx-include="#code-input,#language-select"
-		      hx-target="#results"
-		      hx-swap="innerHTML"
-		      hx-indicator=".spinner"
-		      type="button"
-		      onclick="document.getElementById('code-input').value = window.editor.getValue()"
-		      >Test</button>
+	      <button
+			id="test-button"
+		    hx-post="/judge/test/{{.Problem.Id}}"
+		    hx-include="#code-input,#language-select"
+		    hx-target="#results"
+		    hx-swap="innerHTML"
+		    hx-indicator=".spinner"
+		    type="button"
+		    onclick="document.getElementById('code-input').value = window.editor.getValue()"
+		    >Test</button>
 
-	      <button id="submit-button"
-		      hx-post="/judge/submit"
-		      hx-include="#code-input,#language-select"
-		      hx-target="#submission-modal .modal-content p"
-		      hx-swap="innerHTML"
-		      hx-indicator=".spinner"
-		      type="button"
-		      onclick="document.getElementById('code-input').value = window.editor.getValue()"
-		      >Submit</button>
+	      <button
+			id="submit-button"
+			class="button-primary"
+			hx-post="/judge/submit"
+			hx-include="#code-input,#language-select"
+			hx-target="#submission-modal .modal-content p"
+			hx-swap="innerHTML"
+			hx-indicator=".spinner"
+			type="button"
+			onclick="document.getElementById('code-input').value = window.editor.getValue()"
+			>Submit</button>
 
 	      <div class="spinner">⏳</div>
 	    </div>

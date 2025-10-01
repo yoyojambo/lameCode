@@ -1,102 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
-{{template "head"}}
-<body>
-  {{- template "navbar" .User -}}
+  {{template "head"}}
+  <body>
+	{{- template "navbar" .User -}}
 
-  {{- block "problemTable" .Data}}
-  <title>Home</title>
-  <div id="main" class="container">
-    <h2 class="title" style="text-align: center">Most Popular Challenges</h1>
-	{{- if .Challenges}}
-	{{ template "challengeList" .}}
-	{{ else }}
-    <div id="challenge-list" hx-get="/problemlist?page=1" hx-trigger="load" hx-swap="innerHTML"></div>
-	{{ end }}
-	
-  </div>
-  {{- end }}
-</body>
+	{{- block "problemTable" .Data}}
+	<title>Home</title>
+	<div id="main" class="container">
+      <h3 class="title" style="text-align: center">Most Popular Challenges</h3>
+	  {{- if .Challenges}}
+	  {{block "challengeList" .}}
+
+	  <div id="challenges" class="challengeList">
+		<button 
+		  {{- if not .HasPrev }}
+		  disabled
+		  {{end}}
+		  hx-get="/problemlist?page={{ .PrevPage }}" 
+		  hx-target="#challenges" 
+		  hx-swap="outerHTML" 
+		  style="padding: 10px; cursor: pointer; line-height: normal">
+		  << Back
+			 </button>
+
+		<button 
+		  {{- if not .HasNext }}
+		  disabled
+		  {{- end }}
+		  hx-get="/problemlist?page={{ .NextPage }}" 
+		  hx-target="#challenges" 
+		  hx-swap="outerHTML" 
+		  style="padding: 10px; cursor: pointer; line-height: normal">
+		  Next >>
+		</button>
+
+		<table
+		  hx-boost="true"
+		  hx-target="#main"
+		  hx-swap="outerHTML show:#navbar:top"
+		  style="width: 100%; border-collapse: collapse;"
+		  >
+		  <thead>
+			<tr>
+			  <th style="width: 70%; padding: 10px; border-bottom: 1px solid #ddd; text-align: left;">
+				Challenge
+			  </th>
+			  <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: left;">
+				Difficulty
+			  </th>
+			  <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: left;">
+				Tests
+			  </th>
+			</tr>
+		  </thead>
+		  <tbody>
+			{{- range .Challenges }}
+			<tr>
+			  <td style="padding: 0; border-bottom: 1px solid #eee;">
+				<a
+				  href="/problem/{{ .ID }}#"
+				  style="padding: 10px; text-decoration: none; color: inherit; display: block;">
+				  <b>{{ .Title }}</b>
+				</a>
+			  </td>
+			  <td style="padding: 10px; border-bottom: 1px solid #eee;">
+				{{- if eq .Difficulty 1 }}
+				<span class="difficulty easy">Easy</span>
+				{{ else if eq .Difficulty 2 }}
+				<span class="difficulty medium">Medium</span>
+				{{ else if eq .Difficulty 3 }}
+				<span class="difficulty hard">Hard</span>
+				{{ else }}
+				<span class="difficulty">Not tagged</span>
+				{{- end }}
+			  </td>
+			  <td style="padding: 10px; border-bottom: 1px solid #eee;">
+				{{.TestCount}} tests
+			  </td>
+			</tr>
+			{{- else }}
+			<tr>
+			  <td colspan="3" style="padding: 10px; text-align: center;">
+				No challenges available.
+			  </td>
+			</tr>
+			{{- end }}
+		  </tbody>
+		</table>
+	  </div>
+	  {{ end }}
+	  {{ else }}
+      <div id="challenge-list" hx-get="/problemlist?page=1" hx-trigger="load" hx-swap="innerHTML"></div>
+	  {{ end }}
+	  
+	</div>
+	{{- end }}
+  </body>
 </html>
-
-{{- /* This is the challengelist template that actually shows challenges, and loads new ones  */ -}}
-
-{{define "challengeList"}}
-<div id="challenges" class="challengeList">
-  <button 
-    {{- if not .HasPrev }}
-    disabled
-    {{end}}
-    hx-get="/problemlist?page={{ .PrevPage }}" 
-    hx-target="#challenges" 
-    hx-swap="outerHTML" 
-    style="padding: 10px; cursor: pointer; line-height: normal">
-    << Back
-       </button>
-
-  <button 
-    {{- if not .HasNext }}
-    disabled
-    {{- end }}
-    hx-get="/problemlist?page={{ .NextPage }}" 
-    hx-target="#challenges" 
-    hx-swap="outerHTML" 
-    style="padding: 10px; cursor: pointer; line-height: normal">
-    Next >>
-  </button>
-
-  <table
-    hx-boost="true"
-    hx-target="#main"
-    hx-swap="outerHTML show:#navbar:top"
-    style="width: 100%; border-collapse: collapse;"
-  >
-    <thead>
-      <tr>
-        <th style="width: 80%; padding: 10px; border-bottom: 1px solid #ddd; text-align: left;">
-          Challenge
-        </th>
-        <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: left;">
-          Difficulty
-        </th>
-        <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: left;">
-          Tests
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      {{- range .Challenges }}
-      <tr>
-        <td style="padding: 0; border-bottom: 1px solid #eee;">
-          <a
-            href="/problem/{{ .ID }}#"
-            style="padding: 10px; text-decoration: none; color: inherit; display: block;">
-            <b>{{ .Title }}</b>
-          </a>
-        </td>
-        <td style="padding: 10px; border-bottom: 1px solid #eee;">
-          {{- if eq .Difficulty 1 }}
-          <span class="difficulty easy">Easy</span>
-          {{ else if eq .Difficulty 2 }}
-          <span class="difficulty medium">Medium</span>
-          {{ else if eq .Difficulty 3 }}
-          <span class="difficulty hard">Hard</span>
-          {{ else }}
-          <span class="difficulty">Not tagged</span>
-          {{- end }}
-        </td>
-        <td style="padding: 10px; border-bottom: 1px solid #eee;">
-          {{.TestCount}} tests
-        </td>
-      </tr>
-      {{- else }}
-      <tr>
-        <td colspan="3" style="padding: 10px; text-align: center;">
-          No challenges available.
-        </td>
-      </tr>
-      {{- end }}
-    </tbody>
-  </table>
-</div>
-{{ end }}
