@@ -39,6 +39,9 @@ func loadRoutes(r *gin.Engine) {
 	app.LoadJudgeHandlers(dynamic)   // /judge/test /judge/submit
 	app.LoadUserHandlers(dynamic)    // /login /register
 	app.LoadUserProfileHandlers(dynamic) // /user/:username
+
+	admin_only := r.Group("/", session.MandatoryAdminAuthRoute("/", "/login"))
+	app.LoadAdminHandlers(admin_only)
 }
 
 

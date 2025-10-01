@@ -152,3 +152,59 @@ JOIN users u ON s.user_id = u.id
 WHERE u.username = ?
 GROUP BY s.language
 ORDER BY submission_count DESC;
+
+-- name: GetProblemsForAdmin :many
+SELECT 
+    c.id,
+    c.title,
+    c.description,
+    c.difficulty,
+    c.test_count,
+    c.created_at,
+    c.updated_at,
+    COUNT(DISTINCT s.user_id) as solver_count,
+    COUNT(DISTINCT s.id) as submission_count
+FROM challenges c
+LEFT JOIN solutions s ON c.id = s.challenge_id AND s.status = 'accepted'
+GROUP BY c.id, c.title, c.description, c.difficulty, c.test_count, c.created_at, c.updated_at
+ORDER BY c.created_at DESC;
+
+-- name: UpdateChallenge :one
+UPDATE challenges 
+SET title = ?, description = ?, difficulty = ?, updated_at = unixepoch()
+WHERE id = ?
+RETURNING *;
+
+-- name: DeleteChallenge :exec
+DELETE FROM challenges WHERE id = ?;
+
+-- name: GetChallengeWithTests :one
+SELECT 
+    c.id,
+    c.title,
+    c.description,
+    c.difficulty,
+    c.test_count,
+    c.created_at,
+    c.updated_at
+FROM challenges c
+WHERE c.id = ?;
+
+-- name: UpdateChallengeTest :one
+UPDATE challenge_tests 
+SET input_data = ?, expected_output = ?
+WHERE id = ?
+RETURNING *;
+
+-- name: DeleteChallengeTest :exec
+DELETE FROM challenge_tests WHERE id = ?;
+
+-- name: GetAdminStats :one
+SELECT 
+    COUNT(DISTINCT c.id) as total_challenges,
+    COUNT(DISTINCT u.id) as total_users,
+    COUNT(DISTINCT s.id) as total_submissions,
+    COUNT(DISTINCT CASE WHEN s.status = 'accepted' THEN s.id END) as accepted_submissions
+FROM challenges c
+CROSS JOIN users u
+CROSS JOIN solutions s;

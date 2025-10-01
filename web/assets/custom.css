@@ -1,6 +1,6 @@
 body {
     background-color: #f0f0f0;
-    margin: 0;
+    margin: 0 auto;
     padding: 0;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
@@ -20,8 +20,8 @@ button:disabled {
     justify-content: space-between;
     align-items: center;
     margin: 0 auto;
-    margin-bottom: 10px;
     margin-top: 5px;
+    margin-bottom: 10px;
     background-color: #ffffff;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -245,6 +245,7 @@ body.htmx-request .spinner { display: inline-block; }
     display: flex !important; /* Make the anchor a flex container */
     justify-content: space-between; /* Put space between challenge info and test count */
     align-items: center; /* Vertically align items in the center */
+	white-space: nowrap;
 }
 
 .challenge-info {
@@ -479,4 +480,24 @@ body.htmx-request .spinner { display: inline-block; }
 
 .profile-table a:hover {
     text-decoration: underline;
+}
+
+/* Admin control panels */
+.admin-test-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.admin-test-header h5 {
+    margin: 0;
+}
+
+.admin-actions {
+    white-space: nowrap;
+}
+
+.admin-actions .button {
+    margin-left: 5px;
 }

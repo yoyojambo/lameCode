@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  {{template "head" }}
+  <body>
+    {{template "navbar" .User }}
+
+    {{block "admin-problems" .Data }}
+    <title>Manage Problems</title>
+    <div id="main" class="container">
+      
+      <div class="row">
+        <div class="twelve columns" hx-boost="true"  hx-swap="outerHTML" hx-target="#main">
+          <h2>Manage Problems</h2>
+          <a href="/admin/problems/new" class="button button-primary">Create New Problem</a>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="twelve columns">
+          {{block "problems-table" .}}
+		  <div id="problems-table">
+			{{if .HasProblems}}
+			<table class="u-full-width" hx-boost="true"  hx-swap="outerHTML" hx-target="#main">
+			  <thead>
+				<tr>
+				  <th>Title</th>
+				  <th>Difficulty</th>
+				  <th>Tests</th>
+				  <th>Solvers</th>
+				  <th>Submissions</th>
+				  <th>Created</th>
+				  <th>Actions</th>
+				</tr>
+			  </thead>
+			  <tbody>
+				{{range .Problems}}
+				<tr>
+				  <td>
+					<strong>{{.Title}}</strong><br>
+					<small>{{.TruncatedDesc}}</small>
+				  </td>
+				  <td>
+					<span class="difficulty {{.DifficultyClass}}">
+					  {{.DifficultyLabel}}
+					</span>
+				  </td>
+				  <td>{{.TestCount}}</td>
+				  <td>{{.SolverCount}}</td>
+				  <td>{{.SubmissionCount}}</td>
+				  <td>{{.FormattedDate}}</td>
+				  <td>
+					<a href="/admin/problems/{{.ID}}/edit" class="button">Edit</a>
+					<a href="/admin/problems/{{.ID}}/tests" class="button">Tests</a>
+					<button class="button"
+							hx-delete="/admin/problems/{{.ID}}"
+							hx-confirm="Are you sure you want to delete this problem?"
+							>Delete</button>
+				  </td>
+				</tr>
+				{{end}}
+			  </tbody>
+			</table>
+			{{else}}
+			<p class="profile-no-data">No problems found.</p>
+			{{end}}
+		  </div>
+		  {{end}}
+        </div>
+      </div>
+
+    </div>
+    {{end}}
+  </body>
+</html>

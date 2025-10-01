@@ -1,6 +1,7 @@
 package judge
 
 import (
+	"errors"
 	"fmt"
 	"lameCode/platform/config"
 	"lameCode/platform/data"
@@ -251,7 +252,7 @@ func RunWasmProgramWithInput(executable, input string) (string, error) {
 	cmd.Stdin = strings.NewReader(input)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("Error running submission: %v\n", err)
+		return string(out), fmt.Errorf("error running submission: %w\n", err)
 	}
 
 	return string(out), nil
@@ -321,8 +322,14 @@ func RunMultipleTests(code, lang string, challenges []data.ChallengeTest) ([]Res
 	for i, c := range challenges {
 		in := c.InputData
 		out, err := RunWasmProgramWithInput(executable, in)
-		if err != nil {
-			return results, fmt.Errorf("Error running test #%d: %v", i, err)
+		var eerr *exec.ExitError
+		if errors.As(err, &eerr) { // exit codes are failures, but not errors
+			if config.Debug() {
+				l.Printf("non-zero exit code in test #%d: %v\n", i, eerr)
+				l.Printf("output of program >>>\n%s<<<\n", out)
+			}
+		} else if err != nil {
+			return results, fmt.Errorf("error running test #%d: %v", i, err)
 		}
 
 		out_s, expected_s := strings.TrimSpace(out), strings.TrimSpace(c.ExpectedOutput)
