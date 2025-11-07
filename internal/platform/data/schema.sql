@@ -66,7 +66,6 @@ BEGIN
     UPDATE challenges
     SET test_count = test_count - 1
     WHERE id = OLD.challenge_id;
-
     -- Increment count for the new challenge
     UPDATE challenges
     SET test_count = test_count + 1

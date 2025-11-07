@@ -2,6 +2,7 @@ package data
 
 import (
 	"database/sql"
+	"fmt"
 	"lameCode/internal/platform/config"
 	"log"
 	"os"
@@ -67,7 +68,10 @@ var loadDB = sync.OnceValue(func() *sql.DB {
 
 	if config.ApplySchema() {
 		l.Println("Applying schema...")
-		LoadSchema(db)
+		err := LoadSchema(db)
+		if err != nil {
+			l.Fatalln("Failed to apply schema:\n", err)
+		}
 	}
 
 	return db
@@ -89,10 +93,15 @@ func Repository() *Queries {
 //go:embed schema.sql
 var schemaContent string
 
+
+// This function is ONLY splitting by ";\n\n", any double spaces with
+// ";" inside a trigger or anything else will break it!
+// TODO: A less naive approach that actually is aware of BEGIN/END keywords
 var GetSchemaStatements = sync.OnceValue(
 	func() []string {
 		statements := make([]string, 0, 5)
-		for _, s := range strings.Split(schemaContent, ";") {
+		// double line-break for trigger with ';' inside, just a hack
+		for _, s := range strings.Split(schemaContent, ";\n\n") { 
 			statements = append(statements, strings.TrimSpace(s))
 		}
 
@@ -106,11 +115,11 @@ func LoadSchema(db *sql.DB) error {
 	}
 
 	stmts := GetSchemaStatements()
-	for i := range stmts {
-		_, err := tx.Exec(stmts[i])
+	for _, stmt := range stmts {
+		_, err := tx.Exec(stmt)
 		if err != nil {
 			tx.Rollback()
-			return err
+			return fmt.Errorf("Error running SQL statement: %v \n\n STATEMENT\n>>>\n%s\n<<<", err, stmt)
 		}
 	}
 	
