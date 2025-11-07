@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/fs"
-	"lameCode/platform/data"
+	"lameCode/internal/platform/data"
 	"log"
 	"os"
 	"path/filepath"

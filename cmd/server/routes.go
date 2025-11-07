@@ -1,8 +1,9 @@
 package main
 
 import (
-	"lameCode/platform/session"
-	"lameCode/web/app"
+	"lameCode/internal/platform/session"
+	"lameCode/internal/web/app"
+	"lameCode/internal/web/assets"
 	"log"
 	"os"
 
@@ -25,7 +26,7 @@ func loadRoutes(r *gin.Engine) {
 	//     - Embeds the assets in the binary built
 	//     - Will serve from the embedded content, or with flag --extractStatic
 	//       makes a copy to the temporary folder and serves from that
-	loadStaticContent(r)
+	assets.LoadStaticContent(r)
 
 	// ALL handlers to be loaded.  
 	// Should ideally only be a bunch of pkg.LoadPkgHandlers(r)

@@ -1,11 +1,11 @@
 version: "2"
 sql:
  - engine: "sqlite"
-   queries: "platform/data/queries.sql"
-   schema: "platform/data/schema.sql"
+   queries: "internal/platform/data/queries.sql"
+   schema: "internal/platform/data/schema.sql"
    gen:
      go:
        package: "data"
-       out: "platform/data"
+       out: "internal/platform/data"
        emit_json_tags: true
        query_parameter_limit: 4

@@ -2,7 +2,7 @@ package main
 
 import (
 	"database/sql"
-	"lameCode/platform/data"
+	"lameCode/internal/platform/data"
 	"fmt"
 	"os"
 	"path"

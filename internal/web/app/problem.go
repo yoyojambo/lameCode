@@ -1,8 +1,8 @@
 package app
 
 import (
-	"lameCode/platform/data"
-	"lameCode/platform/judge"
+	"lameCode/internal/platform/data"
+	"lameCode/internal/platform/judge"
 
 	"html/template"
 	"log"

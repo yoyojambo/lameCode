@@ -3,8 +3,8 @@ package judge
 import (
 	"errors"
 	"fmt"
-	"lameCode/platform/config"
-	"lameCode/platform/data"
+	"lameCode/internal/platform/config"
+	"lameCode/internal/platform/data"
 	"log"
 	"os"
 	"os/exec"

@@ -1,7 +1,7 @@
 package app
 
 import (
-	"lameCode/platform/session"
+	"lameCode/internal/platform/session"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"

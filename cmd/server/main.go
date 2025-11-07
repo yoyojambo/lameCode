@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"lameCode/platform/config"
-	"lameCode/platform/data"
+	"lameCode/internal/platform/config"
+	"lameCode/internal/platform/data"
 
 	"github.com/gin-gonic/gin"
 )

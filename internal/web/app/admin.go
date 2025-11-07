@@ -1,7 +1,7 @@
 package app
 
 import (
-	"lameCode/platform/data"
+	"lameCode/internal/platform/data"
 
 	"fmt"
 	"net/http"

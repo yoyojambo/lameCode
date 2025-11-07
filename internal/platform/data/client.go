@@ -2,7 +2,7 @@ package data
 
 import (
 	"database/sql"
-	"lameCode/platform/config"
+	"lameCode/internal/platform/config"
 	"log"
 	"os"
 	"strings"

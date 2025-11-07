@@ -2,7 +2,7 @@ package judge
 
 import (
 	_ "embed"
-	"lameCode/platform/data"
+	"lameCode/internal/platform/data"
 	"testing"
 )
 

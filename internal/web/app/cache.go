@@ -1,7 +1,7 @@
 package app
 
 import (
-	"lameCode/platform/config"
+	"lameCode/internal/platform/config"
 
 	"github.com/gin-gonic/gin"
 )

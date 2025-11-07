@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"flag"
-	"lameCode/platform/data"
+	"lameCode/internal/platform/data"
 
 	"database/sql"
 	_ "modernc.org/sqlite"

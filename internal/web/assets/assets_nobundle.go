@@ -1,6 +1,6 @@
-//go:build !embed_content
+//go:build bundle_content
 
-package main
+package assets
 
 import (
 	"flag"

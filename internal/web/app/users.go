@@ -3,8 +3,8 @@ package app
 import (
 	"errors"
 	"fmt"
-	"lameCode/platform/data"
-	"lameCode/platform/session"
+	"lameCode/internal/platform/data"
+	"lameCode/internal/platform/session"
 	"net/http"
 	"strings"
 

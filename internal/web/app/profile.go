@@ -2,7 +2,7 @@ package app
 
 import (
 	"fmt"
-	"lameCode/platform/data"
+	"lameCode/internal/platform/data"
 	"net/http"
 	"strings"
 	"time"

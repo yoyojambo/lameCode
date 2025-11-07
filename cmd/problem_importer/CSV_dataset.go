@@ -8,7 +8,7 @@ package main
 import (
 	"encoding/csv"
 	"fmt"
-	"lameCode/platform/data"
+	"lameCode/internal/platform/data"
 	"os"
 	"regexp"
 	"strconv"

@@ -3,8 +3,8 @@ package app
 import (
 	"context"
 	"fmt"
-	"lameCode/platform/data"
-	"lameCode/platform/judge"
+	"lameCode/internal/platform/data"
+	"lameCode/internal/platform/judge"
 	"net/http"
 	"strconv"
 	"strings"
