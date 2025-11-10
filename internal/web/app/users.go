@@ -6,10 +6,17 @@ import (
 	"lameCode/internal/platform/data"
 	"lameCode/internal/platform/session"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+)
+
+// The regex for username and password form validation
+var (
+	usernameRegex = regexp.MustCompile(`^[a-zA-Z0-9_-]{5,32}$`)
+	passwordRegex = regexp.MustCompile(`^[A-Za-z0-9!@#$%^&*()_+\-={}\[\]:;<>,.?~]{8,70}$`)
 )
 
 func LoadUserHandlers(r *gin.RouterGroup) {
@@ -40,34 +47,46 @@ func loginPageFunc(ctx *gin.Context) {
 	}
 }
 
+
+// Message should always be consistent, so as to not give away which case occurred
+const passwordMsg = "User or password is incorrect"
+
 func loginUserFunc(ctx *gin.Context) {
 	var req struct {
-		Username     string `form:"username" binding:"required,alphanum,min=5,max=32"`
-		Password     string `form:"password" binding:"required,min=8,max=70"`
+		Username string `form:"username" binding:"required,min=5,max=32"`
+		Password string `form:"password" binding:"required,min=8,max=70"`
 	}
-
+	
 	if err := ctx.ShouldBind(&req); err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, fmt.Errorf("could not bind login form: %w", err))
+		l.Println("Failed login request. Could not bind login form: ", err)
+		ctx.HTML(http.StatusUnprocessableEntity, "login-message",
+				gin.H{"type": "error", "message": passwordMsg},
+		)
 		return
 	}
 
-	// Message should always be consistent, so as to not give away which case occurred
-	passwordMsg := "User or password is incorrect"
+	// Check content validity
+	if !usernameRegex.MatchString(req.Username) || !passwordRegex.MatchString(req.Password) {
+		ctx.HTML(http.StatusUnprocessableEntity, "login-message",
+				gin.H{"type": "error", "message": passwordMsg},
+		)
+		return
+	}
 
 	repo := data.Repository()
 
 	user, err := repo.GetUserByName(ctx.Request.Context(), req.Username)
-	if err != nil { // Anything else
-		if strings.Contains(err.Error(), "no rows") { // If user not found
+	if err != nil {
+		// If user not found
+		if strings.Contains(err.Error(), "no rows") {
 			ctx.HTML(http.StatusOK, "login-message",
-				gin.H{
-					"type": "error",
-					"message": passwordMsg})
-
+				gin.H{"type": "error", "message": passwordMsg},
+			)
+			return
+		} else { // Anything else
+			ctx.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
-		ctx.AbortWithError(http.StatusInternalServerError, err)
-		return
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), 0)
@@ -79,10 +98,8 @@ func loginUserFunc(ctx *gin.Context) {
 	if err := bcrypt.CompareHashAndPassword(hash, user.PasswordHash); err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			ctx.HTML(http.StatusOK, "login-message",
-				gin.H{
-					"type": "error",
-					"message": passwordMsg})
-
+				gin.H{"type": "error", "message": passwordMsg},
+			)
 			return
 		}
 		l.Printf("Comparison of hash %s and %s failed: %v\n",

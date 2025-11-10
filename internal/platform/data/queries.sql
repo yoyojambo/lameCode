@@ -6,6 +6,11 @@ UPDATE users SET
 password_hash = sqlc.arg(newPassword), updated_at = unixepoch()
 WHERE id = sqlc.arg(userId) RETURNING *;
 
+-- name: UpdateUserAdminStatus :one
+UPDATE users SET
+is_admin = sqlc.arg(newStatus), updated_at = unixepoch()
+WHERE id = sqlc.arg(userId) RETURNING *;
+
 -- name: GetUsers :many
 SELECT * FROM users ORDER BY username;
 

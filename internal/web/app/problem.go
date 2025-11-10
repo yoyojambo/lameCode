@@ -5,9 +5,7 @@ import (
 	"lameCode/internal/platform/judge"
 
 	"html/template"
-	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 
@@ -17,8 +15,6 @@ import (
 	"github.com/gomarkdown/markdown/html"
 	"github.com/gomarkdown/markdown/parser"
 )
-
-var l = log.New(os.Stdout, "[app] ", log.LstdFlags|log.Lmsgprefix)
 
 func LoadProblemHandlers(r *gin.RouterGroup) {
 	r.GET("/", problemSetFunc)

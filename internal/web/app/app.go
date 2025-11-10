@@ -2,10 +2,16 @@ package app
 
 import (
 	"lameCode/internal/platform/session"
+	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
+
+// Logger for the package
+var l = log.New(os.Stdout, "[app] ", log.LstdFlags|log.Lmsgprefix)
+
 
 type TemplateData struct {
 	User UserData

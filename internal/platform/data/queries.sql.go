@@ -886,6 +886,26 @@ func (q *Queries) UpdateSolutionStatus(ctx context.Context, newstatus string, ru
 	return i, err
 }
 
+const updateUserAdminStatus = `-- name: UpdateUserAdminStatus :one
+UPDATE users SET
+is_admin = ?1, updated_at = unixepoch()
+WHERE id = ?2 RETURNING id, username, password_hash, is_admin, created_at, updated_at
+`
+
+func (q *Queries) UpdateUserAdminStatus(ctx context.Context, newstatus int64, userid int64) (User, error) {
+	row := q.db.QueryRowContext(ctx, updateUserAdminStatus, newstatus, userid)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.PasswordHash,
+		&i.IsAdmin,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const updateUserPassword = `-- name: UpdateUserPassword :one
 UPDATE users SET
 password_hash = ?1, updated_at = unixepoch()

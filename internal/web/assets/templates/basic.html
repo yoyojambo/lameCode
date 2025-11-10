@@ -1,6 +1,9 @@
 {{define "navbar"}}<!-- Top NavBar -->
 <div id="navbar" class="navbar" hx-boost="true"  hx-swap="outerHTML" hx-target="#main">
   <div>
+	{{if .IsAdmin -}}
+    <a href="/admin#"><b>Dashboard</b></a>
+	{{- end}}
     <a href="/#">Problems</a>
     <a href="/settings#">Settings</a>
     {{- if .LoggedIn -}}
