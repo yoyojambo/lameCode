@@ -78,7 +78,3 @@ func ApplySchema() bool {
 func JwtSecret() string {
 	return jwt_secret
 }
-
-func JwtSecretBytes() []byte {
-	return []byte(jwt_secret)
-}

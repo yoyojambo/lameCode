@@ -61,18 +61,10 @@ var loadDB = sync.OnceValue(func() *sql.DB {
 
 	// Handle error in sql.Open (remote OR local)
 	if err != nil {
-		panic(err)
+		l.Panicln(err)
 	}
 
-	l.Println("Initialized SQL conn to", config.DbUrl())
-
-	if config.ApplySchema() {
-		l.Println("Applying schema...")
-		err := LoadSchema(db)
-		if err != nil {
-			l.Fatalln("Failed to apply schema:\n", err)
-		}
-	}
+	l.Println("Successful connection to", config.DbUrl())
 
 	return db
 })

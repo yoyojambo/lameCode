@@ -749,6 +749,42 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 	return items, nil
 }
 
+const getUsersByStatus = `-- name: GetUsersByStatus :many
+SELECT id, username, password_hash, is_admin, created_at, updated_at FROM users
+WHERE is_admin = ?
+ORDER BY username
+`
+
+func (q *Queries) GetUsersByStatus(ctx context.Context, isAdmin int64) ([]User, error) {
+	rows, err := q.db.QueryContext(ctx, getUsersByStatus, isAdmin)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.PasswordHash,
+			&i.IsAdmin,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const newChallenge = `-- name: NewChallenge :one
 INSERT INTO challenges (title, description, difficulty)
 VALUES (?, ?, ?)

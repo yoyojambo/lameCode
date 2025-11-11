@@ -14,6 +14,11 @@ WHERE id = sqlc.arg(userId) RETURNING *;
 -- name: GetUsers :many
 SELECT * FROM users ORDER BY username;
 
+-- name: GetUsersByStatus :many
+SELECT * FROM users
+WHERE is_admin = ?
+ORDER BY username;
+
 -- name: GetUserById :one
 SELECT * FROM users
 WHERE id = ?;

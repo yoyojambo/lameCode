@@ -46,16 +46,16 @@ func CreateSignedJwtToken(username, access string) (string, error) {
 		return "", fmt.Errorf("failed to create JWT token: %w", err)
 	}
 
-	signedToken, err := tok.SignedString(config.JwtSecretBytes())
+	signedToken, err := tok.SignedString([]byte(config.JwtSecret()))
 	if err != nil {
 		return "", fmt.Errorf("failed to sign JWT token: %w", err)
 	}
-	
+
 	return signedToken, nil
 }
 
 func keyFunc(t *jwt.Token) (interface{}, error) {
-	return config.JwtSecretBytes(), nil
+	return []byte(config.JwtSecret()), nil
 }
 
 func VerifyJwtToken(tokenStr string) (*jwt.Token, error) {
