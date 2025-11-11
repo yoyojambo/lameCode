@@ -1,6 +1,9 @@
 package app
 
 import (
+	"database/sql"
+	"errors"
+	"lameCode/internal/platform/config"
 	"lameCode/internal/platform/data"
 	"lameCode/internal/platform/judge"
 
@@ -20,31 +23,6 @@ func LoadProblemHandlers(r *gin.RouterGroup) {
 	r.GET("/", problemSetFunc)
 	r.GET("/problemlist", enableHtmxCache, problemsSetPageFunc)
 	r.GET("/problem/:id", enableHtmxCache, problemFunc)
-}
-
-// Local representation of a challenge
-// User has only information necessary to display on pages
-type User struct {
-	LoggedIn bool
-	Username string
-	Avatar   string // or empty if none
-}
-
-func fromUser(user data.User) User {
-	return User{
-		LoggedIn: true,
-		Username: user.Username,
-		Avatar:   "",
-	}
-}
-
-func fromUsername(ctx *gin.Context, username string) User {
-	user, err := data.Repository().GetUserByName(ctx, username)
-	if err != nil {
-		panic(err)
-	}
-
-	return fromUser(user)
 }
 
 // Local representation of a challenge.
@@ -76,6 +54,13 @@ func mdToHTML(md string) string {
 // If the Markdown in Description field begins with "# " indicating a h1
 // title, it will the text in that line the Title field.
 func tryBetterTitle(challenge *data.Challenge) {
+	if len(challenge.Description) < 2 {
+		if config.Debug() {
+			l.Printf("Attempted better title on \n%+v:\nDescription too short!", *challenge)
+		}
+		return
+	}
+
 	challenge.Description = strings.TrimSpace(challenge.Description)
 
 	// Assume it is starting with a title, so assign it
@@ -86,19 +71,16 @@ func tryBetterTitle(challenge *data.Challenge) {
 	}
 }
 
-func fromChallenge(challenge data.Challenge) ApiChallenge {
-	return ApiChallenge{
-		Id:    challenge.ID,
-		Title: challenge.Title,
-		// Essentially a cast :/
-		Description: template.HTML(mdToHTML(challenge.Description)),
-		Difficulty:  challenge.Difficulty,
-	}
-}
-
 func problemFunc(ctx *gin.Context) {
 	// Let it check compilers in the background, so it can cache it
-	go l.Println(judge.LanguageOptions())
+	compilers := judge.LanguageOptions()
+	if config.Debug() {
+		go func(compilers []judge.LanguageOption) {
+			for _, c := range compilers {
+				l.Printf("%+v\n", c)
+			}
+		}(compilers)
+	}
 
 	problemId_str := ctx.Param("id")
 	problemId, err := strconv.ParseInt(problemId_str, 10, 64)
@@ -107,15 +89,29 @@ func problemFunc(ctx *gin.Context) {
 	}
 
 	p, err := data.Repository().GetChallenge(ctx, problemId)
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		ctx.AbortWithError(500, err)
+		return
+	}
+
+	// TODO: Make 404 not found page.
+
+	// wrapped the literal in () because otherwise it thinks {} is the
+	// beginning of an expression
+	if p == (data.Challenge{}) { // compare to 0-value in case of not found
+		ctx.AbortWithStatus(404)
+		return
 	}
 
 	tryBetterTitle(&p)
 
 	data := gin.H{
-		// fromChallenge creates an object with the unescaped Descrtiption
-		"Problem": fromChallenge(p),
+		"Problem": ApiChallenge{
+			Id:          p.ID,
+			Title:       p.Title,
+			Description: template.HTML(mdToHTML(p.Description)),
+			Difficulty:  p.Difficulty,
+		},
 
 		"LanguageOptions": judge.LanguageOptions(),
 	}
@@ -146,7 +142,7 @@ func problemsSetPageFunc(ctx *gin.Context) {
 	pageStr := ctx.Query("page")
 
 	page, err := strconv.ParseInt(pageStr, 10, 64) // Straigt to int64
-	if err != nil || page < 1 {
+	if err != nil || page < 1 {                    // fails over to first page
 		page = 1
 	}
 
@@ -180,7 +176,7 @@ func getPageData(ctx *gin.Context, page int64) (ChallengePage, error) {
 	offset := (page - 1) * pageSize
 
 	// Query the paginated challenges.
-	challenges_data, err := data.Repository().GetChallengesPaginated(ctx, pageSize + 1, offset)
+	challenges_data, err := data.Repository().GetChallengesPaginated(ctx, pageSize+1, offset)
 
 	if err != nil {
 		l.Printf("error fetching paginated challenges: %v", err)

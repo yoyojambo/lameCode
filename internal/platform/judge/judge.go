@@ -64,6 +64,7 @@ func (c CompilerConfig) Compile(sourcePath string) (string, error) {
 	return exe, nil
 }
 
+// TODO: Join languageOptions and compilers
 var languageOptions []LanguageOption = make([]LanguageOption, 0, 5)
 var compilers []CompilerConfig
 
@@ -75,6 +76,7 @@ func LanguageOptions() []LanguageOption {
 }
 
 // TODO: Add compiler version to Compiler field
+// TODO: Implement as generalized judge API
 // It only runs once anyway
 func checkCompilers() {
 	// Normal rust compiler
@@ -167,6 +169,7 @@ func checkCompilers() {
 				return []string{src, "-o", exe, "-Oz", "-sSTANDALONE_WASM"}
 			},
 		})
+		languageOptions = append(languageOptions, LanguageOption{"cpp", "C++", "em++"})
 	}
 
 	l.Println("Loaded all available compilers")
