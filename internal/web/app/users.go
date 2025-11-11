@@ -3,6 +3,7 @@ package app
 import (
 	"errors"
 	"fmt"
+	"lameCode/internal/platform/config"
 	"lameCode/internal/platform/data"
 	"lameCode/internal/platform/session"
 	"net/http"
@@ -21,7 +22,7 @@ var (
 
 func LoadUserHandlers(r *gin.RouterGroup) {
 	r.GET("/login", enableHtmxCache, loginPageFunc)
-	
+
 	r.POST("/login", loginUserFunc)
 	r.POST("/register", registerUserFunc)
 
@@ -47,7 +48,6 @@ func loginPageFunc(ctx *gin.Context) {
 	}
 }
 
-
 // Message should always be consistent, so as to not give away which case occurred
 const passwordMsg = "User or password is incorrect"
 
@@ -56,11 +56,11 @@ func loginUserFunc(ctx *gin.Context) {
 		Username string `form:"username" binding:"required,min=5,max=32"`
 		Password string `form:"password" binding:"required,min=8,max=70"`
 	}
-	
+
 	if err := ctx.ShouldBind(&req); err != nil {
 		l.Println("Failed login request. Could not bind login form: ", err)
 		ctx.HTML(http.StatusUnprocessableEntity, "login-message",
-				gin.H{"type": "error", "message": passwordMsg},
+			gin.H{"type": "error", "message": passwordMsg},
 		)
 		return
 	}
@@ -68,7 +68,7 @@ func loginUserFunc(ctx *gin.Context) {
 	// Check content validity
 	if !usernameRegex.MatchString(req.Username) || !passwordRegex.MatchString(req.Password) {
 		ctx.HTML(http.StatusUnprocessableEntity, "login-message",
-				gin.H{"type": "error", "message": passwordMsg},
+			gin.H{"type": "error", "message": passwordMsg},
 		)
 		return
 	}
@@ -89,13 +89,7 @@ func loginUserFunc(ctx *gin.Context) {
 		}
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), 0)
-	if err != nil {
-		ctx.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-
-	if err := bcrypt.CompareHashAndPassword(hash, user.PasswordHash); err != nil {
+	if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(req.Password)); err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			ctx.HTML(http.StatusOK, "login-message",
 				gin.H{"type": "error", "message": passwordMsg},
@@ -103,7 +97,7 @@ func loginUserFunc(ctx *gin.Context) {
 			return
 		}
 		l.Printf("Comparison of hash %s and %s failed: %v\n",
-			hash, user.PasswordHash, err)
+			user.PasswordHash, req.Password, err)
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
@@ -140,9 +134,9 @@ func registerUserFunc(ctx *gin.Context) {
 	// Flash message
 	if req.Password != req.Confirmation {
 		ctx.HTML(http.StatusOK, "login-message",
-				gin.H{
-					"type": "error",
-					"message": "Passwords don't match"})
+			gin.H{
+				"type":    "error",
+				"message": "Passwords don't match"})
 
 		return
 	}
@@ -152,25 +146,25 @@ func registerUserFunc(ctx *gin.Context) {
 		ctx.AbortWithError(http.StatusInternalServerError,
 			fmt.Errorf("Password processing failed: %v", err))
 		return
-	} else {
-		l.Printf("Registering hash %s for user %s\n", hash, req.Username)
+	} else if config.Debug() {
+		l.Printf("Registering new user %s\n", req.Username)
 	}
 
 	repo := data.Repository()
 
 	userID, err := repo.NewUser(ctx.Request.Context(),
-		req.Username, []byte(req.Password))
+		req.Username, hash)
 	if err != nil {
 		// Handle already existing user
 		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
 			l.Printf("Cannot register an existing user (%s)\n", req.Username)
-			
+
 			// Flash message response
 			ctx.HTML(http.StatusOK, "login-message",
 				gin.H{
-					"type":"error",
+					"type":    "error",
 					"message": fmt.Sprintf("User %s already exists...", req.Username)})
-			
+
 		} else {
 			ctx.AbortWithError(http.StatusInternalServerError,
 				fmt.Errorf("could not create new user in DB: %w", err))
