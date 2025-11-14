@@ -43,6 +43,7 @@ func loadRoutes(r *gin.Engine) {
 
 	admin_only := r.Group("/", session.MandatoryAdminAuthRoute("/", "/login"))
 	app.LoadAdminHandlers(admin_only)
+	app.LoadAdminUserHandlers(admin_only)
 }
 
 

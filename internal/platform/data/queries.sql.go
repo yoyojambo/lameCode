@@ -21,6 +21,41 @@ func (q *Queries) CountChallenges(ctx context.Context) (int64, error) {
 	return count, err
 }
 
+const countUsers = `-- name: CountUsers :one
+SELECT COUNT(*) as count FROM users
+`
+
+func (q *Queries) CountUsers(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countUsers)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countUsersByStatus = `-- name: CountUsersByStatus :one
+SELECT COUNT(*) as count FROM users
+WHERE is_admin = ?1
+`
+
+func (q *Queries) CountUsersByStatus(ctx context.Context, status int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countUsersByStatus, status)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countUsersFiltered = `-- name: CountUsersFiltered :one
+SELECT COUNT(*) as count FROM users
+WHERE username LIKE '%' || ?1 || '%'
+`
+
+func (q *Queries) CountUsersFiltered(ctx context.Context, search sql.NullString) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countUsersFiltered, search)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const deleteChallenge = `-- name: DeleteChallenge :exec
 DELETE FROM challenges WHERE id = ?
 `
@@ -36,6 +71,15 @@ DELETE FROM challenge_tests WHERE id = ?
 
 func (q *Queries) DeleteChallengeTest(ctx context.Context, id int64) error {
 	_, err := q.db.ExecContext(ctx, deleteChallengeTest, id)
+	return err
+}
+
+const deleteUser = `-- name: DeleteUser :exec
+DELETE FROM users WHERE id = ?
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteUser, id)
 	return err
 }
 
@@ -757,6 +801,79 @@ ORDER BY username
 
 func (q *Queries) GetUsersByStatus(ctx context.Context, isAdmin int64) ([]User, error) {
 	rows, err := q.db.QueryContext(ctx, getUsersByStatus, isAdmin)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.PasswordHash,
+			&i.IsAdmin,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getUsersPaginated = `-- name: GetUsersPaginated :many
+SELECT id, username, password_hash, is_admin, created_at, updated_at FROM users
+ORDER BY username ASC
+LIMIT ? OFFSET ?
+`
+
+func (q *Queries) GetUsersPaginated(ctx context.Context, limit int64, offset int64) ([]User, error) {
+	rows, err := q.db.QueryContext(ctx, getUsersPaginated, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.PasswordHash,
+			&i.IsAdmin,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getUsersPaginatedFiltered = `-- name: GetUsersPaginatedFiltered :many
+SELECT id, username, password_hash, is_admin, created_at, updated_at FROM users
+WHERE username LIKE '%' || ?3 || '%'
+ORDER BY username ASC
+LIMIT ? OFFSET ?
+`
+
+func (q *Queries) GetUsersPaginatedFiltered(ctx context.Context, search sql.NullString, limit int64, offset int64) ([]User, error) {
+	rows, err := q.db.QueryContext(ctx, getUsersPaginatedFiltered, search, limit, offset)
 	if err != nil {
 		return nil, err
 	}

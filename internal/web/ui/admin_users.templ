@@ -1,0 +1,240 @@
+package ui
+
+import (
+	"fmt"
+	"time"
+	"lameCode/internal/platform/data"
+)
+
+func formatUnixDate(timestamp int64) string {
+	return time.Unix(timestamp, 0).Format("Jan 2, 2006")
+}
+
+// Full page with layout
+templ AdminUsersPage(user UserData, stats UserManagementStats, adminUsers []data.User, normalUsers UserSearchResult) {
+	@Base("User Management", user) {
+		@AdminUsersContent(stats, adminUsers, normalUsers)
+	}
+}
+
+// Just content (for HTMX swaps)
+templ AdminUsersContent(stats UserManagementStats, adminUsers []data.User, normalUsers UserSearchResult) {
+	<div id="main" class="container">
+		<div class="row">
+			<div class="twelve columns">
+				<h2>User Management</h2>
+			</div>
+		</div>
+		
+		// Mini Dashboard (Placeholder)
+		@DashboardPlaceholder(stats)
+		
+		// Admin Users Section
+		@AdminUsersSection(adminUsers)
+		
+		// Normal Users Section with Search
+		@NormalUsersSection(normalUsers)
+	</div>
+}
+
+// Dashboard stats placeholder
+templ DashboardPlaceholder(stats UserManagementStats) {
+	<div class="row">
+		<div class="three columns box profile-stat-box">
+			<h4>{ fmt.Sprint(stats.TotalUsers) }</h4>
+			<p>Total Users</p>
+		</div>
+		<div class="three columns box profile-stat-box">
+			<h4>{ fmt.Sprint(stats.AdminUsers) }</h4>
+			<p>Administrators</p>
+		</div>
+		<div class="three columns box profile-stat-box">
+			<h4>{ fmt.Sprint(stats.NormalUsers) }</h4>
+			<p>Normal Users</p>
+		</div>
+		<div class="three columns box profile-stat-box">
+			<h4>Coming Soon</h4>
+			<p>More Stats</p>
+		</div>
+	</div>
+}
+
+// Admin Users Table
+templ AdminUsersSection(adminUsers []data.User) {
+	<div class="row">
+		<div class="twelve columns box">
+			<h4>Administrator Users ({ fmt.Sprint(len(adminUsers)) })</h4>
+			if len(adminUsers) > 0 {
+				<table class="u-full-width profile-table">
+					<thead>
+						<tr>
+							<th>Username</th>
+							<th>Member Since</th>
+							<th>Actions</th>
+						</tr>
+					</thead>
+					<tbody id="admin-users-table">
+						for _, u := range adminUsers {
+							@AdminUserRow(u)
+						}
+					</tbody>
+				</table>
+			} else {
+				<p class="profile-no-data">No administrator users found.</p>
+			}
+		</div>
+	</div>
+}
+
+// Single admin user row
+templ AdminUserRow(u data.User) {
+	<tr>
+		<td>
+			<a href={ templ.URL("/user/" + u.Username) }>{ u.Username }</a>
+		</td>
+		<td>{ formatUnixDate(u.CreatedAt) }</td>
+		<td>
+			<button
+				class="button"
+				hx-post={ fmt.Sprintf("/admin/users/%d/demote", u.ID) }
+				hx-target="#admin-users-table"
+				hx-swap="innerHTML"
+				hx-confirm="Are you sure you want to demote this administrator to a normal user?"
+			>
+				Demote
+			</button>
+			<button
+				class="button"
+				hx-delete={ fmt.Sprintf("/admin/users/%d", u.ID) }
+				hx-target="#admin-users-table"
+				hx-swap="innerHTML"
+				hx-confirm={ fmt.Sprintf("Are you sure you want to delete user '%s'? This cannot be undone.", u.Username) }
+			>
+				Delete
+			</button>
+		</td>
+	</tr>
+}
+
+// Normal Users Section with Search
+templ NormalUsersSection(result UserSearchResult) {
+	<div class="row">
+		<div class="twelve columns box">
+			<h4>Normal Users</h4>
+			
+			// Search form
+			<form hx-get="/admin/users/search" hx-target="#user-search-results" hx-swap="innerHTML">
+				<div class="row">
+					<div class="nine columns">
+						<input
+							type="text"
+							name="search"
+							placeholder="Search by username..."
+							value={ result.Query }
+							class="u-full-width"
+						/>
+					</div>
+					<div class="three columns">
+						<button type="submit" class="button button-primary u-full-width">
+							Search
+						</button>
+					</div>
+				</div>
+			</form>
+			
+			// Results container
+			<div id="user-search-results">
+				@UserSearchResults(result)
+			</div>
+		</div>
+	</div>
+}
+
+// User search results (swappable via HTMX)
+templ UserSearchResults(result UserSearchResult) {
+	if result.TotalCount > 0 {
+		<p>Showing { fmt.Sprint(len(result.Users)) } of { fmt.Sprint(result.TotalCount) } users</p>
+		
+		<table class="u-full-width profile-table">
+			<thead>
+				<tr>
+					<th>Username</th>
+					<th>Member Since</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody id="normal-users-table">
+				for _, u := range result.Users {
+					@NormalUserRow(u)
+				}
+			</tbody>
+		</table>
+		
+		// Pagination controls
+		if result.HasPrev || result.HasNext {
+			<div style="margin-top: 1rem">
+				<button
+					if !result.HasPrev {
+						disabled
+					}
+					hx-get={ fmt.Sprintf("/admin/users/search?search=%s&page=%d", result.Query, result.PrevPage) }
+					hx-target="#user-search-results"
+					hx-swap="innerHTML"
+					style="padding: 10px; cursor: pointer; line-height: normal"
+				>
+					&lt;&lt; Back
+				</button>
+				
+				<button
+					if !result.HasNext {
+						disabled
+					}
+					hx-get={ fmt.Sprintf("/admin/users/search?search=%s&page=%d", result.Query, result.NextPage) }
+					hx-target="#user-search-results"
+					hx-swap="innerHTML"
+					style="padding: 10px; cursor: pointer; line-height: normal"
+				>
+					Next &gt;&gt;
+				</button>
+			</div>
+		}
+	} else {
+		<p class="profile-no-data">
+			if result.Query != "" {
+				No users found matching "{ result.Query }".
+			} else {
+				No normal users found.
+			}
+		</p>
+	}
+}
+
+// Single normal user row
+templ NormalUserRow(u data.User) {
+	<tr>
+		<td>
+			<a href={ templ.URL("/user/" + u.Username) }>{ u.Username }</a>
+		</td>
+		<td>{ formatUnixDate(u.CreatedAt) }</td>
+		<td>
+			<button
+				class="button"
+				hx-post={ fmt.Sprintf("/admin/users/%d/promote", u.ID) }
+				hx-target="#normal-users-table"
+				hx-swap="innerHTML"
+				hx-confirm="Are you sure you want to promote this user to administrator?"
+			>
+				Promote
+			</button>
+			<button
+				class="button"
+				hx-delete={ fmt.Sprintf("/admin/users/%d", u.ID) }
+				hx-target="#normal-users-table"
+				hx-swap="innerHTML"
+				hx-confirm={ fmt.Sprintf("Are you sure you want to delete user '%s'? This cannot be undone.", u.Username) }
+			>
+				Delete
+			</button>
+		</td>
+	</tr>
+}

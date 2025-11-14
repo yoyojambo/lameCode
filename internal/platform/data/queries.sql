@@ -14,11 +14,6 @@ WHERE id = sqlc.arg(userId) RETURNING *;
 -- name: GetUsers :many
 SELECT * FROM users ORDER BY username;
 
--- name: GetUsersByStatus :many
-SELECT * FROM users
-WHERE is_admin = ?
-ORDER BY username;
-
 -- name: GetUserById :one
 SELECT * FROM users
 WHERE id = ?;
@@ -26,6 +21,36 @@ WHERE id = ?;
 -- name: GetUserByName :one
 SELECT * FROM users
 WHERE username = ?;
+
+-- name: GetUsersByStatus :many
+SELECT * FROM users
+WHERE is_admin = ?
+ORDER BY username;
+
+-- name: CountUsersByStatus :one
+SELECT COUNT(*) as count FROM users
+WHERE is_admin = sqlc.arg(status);
+
+-- name: GetUsersPaginated :many
+SELECT * FROM users
+ORDER BY username ASC
+LIMIT ? OFFSET ?;
+
+-- name: GetUsersPaginatedFiltered :many
+SELECT * FROM users
+WHERE username LIKE '%' || sqlc.arg(search) || '%'
+ORDER BY username ASC
+LIMIT ? OFFSET ?;
+
+-- name: CountUsers :one
+SELECT COUNT(*) as count FROM users;
+
+-- name: CountUsersFiltered :one
+SELECT COUNT(*) as count FROM users
+WHERE username LIKE '%' || sqlc.arg(search) || '%';
+
+-- name: DeleteUser :exec
+DELETE FROM users WHERE id = ?;
        
 -- name: NewChallenge :one
 INSERT INTO challenges (title, description, difficulty)
