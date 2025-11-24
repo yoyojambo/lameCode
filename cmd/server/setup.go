@@ -17,12 +17,12 @@ func setupAdminUser() {
 	// Create new user
 	hash, err := bcrypt.GenerateFromPassword([]byte(adminPass), 0)
 	if err != nil {
-		l.Fatal("Error creating admin account for setup: %v", err)
+		l.Fatalf("Error creating admin account for setup: %v", err)
 	}
 	
 	newAdmin, err := repo.NewUser(context.Background(), adminName, hash)
 	if err != nil {
-		l.Fatal("Error creating admin account for setup: %v", err)
+		l.Fatalf("Error creating admin account for setup: %v", err)
 	}
 
 	// Set as admin

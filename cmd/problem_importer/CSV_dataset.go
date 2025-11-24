@@ -6,6 +6,7 @@
 package main
 
 import (
+	"context"
 	"encoding/csv"
 	"fmt"
 	"lameCode/internal/platform/data"
@@ -13,8 +14,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-
-	"golang.org/x/net/context"
 )
 
 type CsvProblem struct {
@@ -39,20 +38,15 @@ type CsvProblem struct {
 	Similar_questions  []string
 }
 
-func strColumn(newLine bool, name, text string) string {
-	str := ""
-	if newLine {
-		str += "\n"
-	}
-	str += name + ": " + text
-
-	return str
+// Format for columns output for String() method
+func strColumn(name, text string) string {
+	return "\n" + name + ": " + text
 }
 
 func (p *CsvProblem) String() string {
 	str := "Problem " + strconv.Itoa(p.Id)
 
-	str += strColumn(true, "Title", p.Title)
+	str += strColumn("Title", p.Title)
 	desc := p.Description[:70]
 	i := strings.Index(desc, "\n\n")
 	if i > 0 {
@@ -62,15 +56,16 @@ func (p *CsvProblem) String() string {
 	// for strings.HasSuffix(desc, "\n") {
 	// 	desc = desc[:len(desc)-1]
 	// }
-	str += strColumn(true, "Description", desc)
+	str += strColumn("Description", desc)
 	diff := "Easy"
-	if p.Difficulty == 2 {
+	switch p.Difficulty {
+	case 2:
 		diff = "Medium"
-	} else if p.Difficulty == 3 {
+	case 3:
 		diff = "Hard"
 	}
-	str += strColumn(true, "Difficulty", diff)
-	str += strColumn(true, "URL", p.Url)
+	str += strColumn("Difficulty", diff)
+	str += strColumn("URL", p.Url)
 
 	return str
 }
@@ -88,13 +83,14 @@ func parseProblems(rows [][]string) []CsvProblem {
 		isPremium, _ := strconv.ParseBool(row[3])
 		difficulty_str := row[4]
 		difficulty := int64(0)
-		if difficulty_str == "Easy" {
+		switch difficulty_str {
+		case "Easy":
 			difficulty = 1
-		} else if difficulty_str == "Medium" {
+		case "Medium":
 			difficulty = 2
-		} else if difficulty_str == "Hard" {
+		case "Hard":
 			difficulty = 3
-		} else {
+		default:
 			panic("Got " + difficulty_str + " where one from [Easy, Medium, Hard] expected")
 		}
 

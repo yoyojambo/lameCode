@@ -59,7 +59,7 @@ func (c CompilerConfig) Compile(sourcePath string) (string, error) {
 	cmd.Env = append(os.Environ(), extraEnv...)
 
 	if out, err := cmd.CombinedOutput(); err != nil {
-		return "", fmt.Errorf("%s failed: %v\n%s", cmdName, err, out)
+		return "", fmt.Errorf("%s failed: %w\n%s", cmdName, err, out)
 	}
 	return exe, nil
 }
@@ -273,7 +273,7 @@ func createProgram(lang, code string) (string, error) {
 	// Use a more specific pattern for temp files
 	f, err := os.CreateTemp("", fmt.Sprintf("submission_*.%s", ext))
 	if err != nil {
-		return "", fmt.Errorf("Error creating submission code file: %v\n", err)
+		return "", fmt.Errorf("Error creating submission code file: %w\n", err)
 	}
 	prog_name := f.Name()
 	defer f.Close() // Close the file handle after creating and writing
@@ -281,7 +281,7 @@ func createProgram(lang, code string) (string, error) {
 	_, err = f.WriteString(code)
 	if err != nil {
 		// Return the program name even if writing fails for potential cleanup
-		return prog_name, fmt.Errorf("Error writing to submission code file %s: %v\n", prog_name, err)
+		return prog_name, fmt.Errorf("Error writing to submission code file %s: %w\n", prog_name, err)
 	}
 
 	return prog_name, nil
@@ -310,14 +310,14 @@ type Result struct {
 func RunMultipleTests(code, lang string, challenges []data.ChallengeTest) ([]Result, error) {
 	prog_name, err := createProgram(lang, code)
 	if err != nil {
-		return nil, fmt.Errorf("Error creating %s program file:\n%v\n", lang, err)
+		return nil, fmt.Errorf("Error creating %s program file:\n%w\n", lang, err)
 	}
 	defer os.Remove(prog_name)
 
 	executable, err := compileProgram(prog_name, lang)
 	if err != nil {
 		// Actual error message from compiler, don't add newline
-		return nil, fmt.Errorf("Error compiling %s program:\n%v", lang, err)
+		return nil, fmt.Errorf("Error compiling %s program:\n%w", lang, err)
 	}
 	defer os.Remove(executable)
 
@@ -325,14 +325,14 @@ func RunMultipleTests(code, lang string, challenges []data.ChallengeTest) ([]Res
 	for i, c := range challenges {
 		in := c.InputData
 		out, err := RunWasmProgramWithInput(executable, in)
-		var eerr *exec.ExitError
-		if errors.As(err, &eerr) { // exit codes are failures, but not errors
+		var exit_err *exec.ExitError
+		if errors.As(err, &exit_err) { // exit codes are failures, but not errors
 			if config.Debug() {
-				l.Printf("non-zero exit code in test #%d: %v\n", i, eerr)
+				l.Printf("non-zero exit code in test #%d: %v\n", i, exit_err)
 				l.Printf("output of program >>>\n%s<<<\n", out)
 			}
 		} else if err != nil {
-			return results, fmt.Errorf("error running test #%d: %v", i, err)
+			return results, fmt.Errorf("error running test #%d: %w", i, err)
 		}
 
 		out_s, expected_s := strings.TrimSpace(out), strings.TrimSpace(c.ExpectedOutput)

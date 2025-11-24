@@ -40,7 +40,7 @@ func testSubmission(ctx *gin.Context) {
 	challengeId, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadRequest,
-			fmt.Errorf("error parsing challenge id in /test:", err))
+			fmt.Errorf("error parsing challenge id in /test: %w", err))
 		
 		return
 	}
@@ -57,7 +57,7 @@ func testSubmission(ctx *gin.Context) {
 	tests, err := q.GetTestsForChallenge(testCtx, challengeId)
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError,
-			fmt.Errorf("error getting tests for challenge in test:", err))
+			fmt.Errorf("error getting tests for challenge in test: %w", err))
 		
 		return
 	}

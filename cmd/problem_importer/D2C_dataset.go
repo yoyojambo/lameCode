@@ -88,7 +88,7 @@ func walkParser(out chan<- challenge, done <-chan error) filepath.WalkFunc {
 		}
 		
 		parts := strings.Split(filepath.ToSlash(path), "/")
-		subDir := parts[len(parts)-2]
+		subDir := parts[len(parts)-2] // eg. two_sum/[description]/description.txt
 
 		// Don't read content of file if would not fit the structure
 		// Skip to next file
@@ -114,7 +114,7 @@ func walkParser(out chan<- challenge, done <-chan error) filepath.WalkFunc {
 					select {
 					case out <- *ch: // Send ch
 					case err := <-done:
-						return fmt.Errorf("Receiver failed: %v", err)
+						return fmt.Errorf("Receiver failed: %w", err)
 					}
 					ch = nil   // Un-set ch
 				}
@@ -131,7 +131,7 @@ func walkParser(out chan<- challenge, done <-chan error) filepath.WalkFunc {
 			if before, f := strings.CutSuffix(d.Name(), "_input.txt"); f {
 				n, err := strconv.ParseInt(before, 10, 32)
 				if err != nil {
-					return fmt.Errorf("%s is not a valid sample file.\n%v",
+					return fmt.Errorf("%s is not a valid sample file: %w",
 						d.Name(), err)
 				}
 
@@ -140,7 +140,7 @@ func walkParser(out chan<- challenge, done <-chan error) filepath.WalkFunc {
 			} else if before, f := strings.CutSuffix(d.Name(), "_output.txt"); f {
 				n, err := strconv.ParseInt(before, 10, 32)
 				if err != nil {
-					return fmt.Errorf("%s is not a valid sample file.\n%v",
+					return fmt.Errorf("%s is not a valid sample file: %w",
 						d.Name(), err)
 				}
 

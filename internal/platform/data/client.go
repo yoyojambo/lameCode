@@ -93,7 +93,7 @@ var GetSchemaStatements = sync.OnceValue(
 	func() []string {
 		statements := make([]string, 0, 5)
 		// double line-break for trigger with ';' inside, just a hack
-		for _, s := range strings.Split(schemaContent, ";\n\n") { 
+		for s := range strings.SplitSeq(schemaContent, ";\n\n") { 
 			statements = append(statements, strings.TrimSpace(s))
 		}
 
@@ -111,7 +111,7 @@ func LoadSchema(db *sql.DB) error {
 		_, err := tx.Exec(stmt)
 		if err != nil {
 			tx.Rollback()
-			return fmt.Errorf("Error running SQL statement: %v \n\n STATEMENT\n>>>\n%s\n<<<", err, stmt)
+			return fmt.Errorf("Error running SQL statement: %w \n\n STATEMENT\n>>>\n%s\n<<<", err, stmt)
 		}
 	}
 	

@@ -33,7 +33,7 @@ func adminUsersPageFunc(ctx *gin.Context) {
 	
 	adminUsers, err := repo.GetUsersByStatus(ctx.Request.Context(), 1)
 	if err != nil {
-		err = fmt.Errorf("Error fetching Admin Users: %v", err)
+		err = fmt.Errorf("Error fetching Admin Users: %w", err)
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
@@ -41,7 +41,7 @@ func adminUsersPageFunc(ctx *gin.Context) {
 
 	normalUsers, err := getUserSearchResults(ctx, "", 1)
 	if err != nil {
-		err = fmt.Errorf("Error fetching Normal Users Page 1: %v", err)
+		err = fmt.Errorf("Error fetching Normal Users Page 1: %w", err)
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}

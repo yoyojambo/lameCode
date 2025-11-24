@@ -144,7 +144,7 @@ func registerUserFunc(ctx *gin.Context) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), 0)
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError,
-			fmt.Errorf("Password processing failed: %v", err))
+			fmt.Errorf("Password processing failed: %w", err))
 		return
 	} else if config.Debug() {
 		l.Printf("Registering new user %s\n", req.Username)

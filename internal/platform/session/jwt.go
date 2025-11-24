@@ -54,7 +54,7 @@ func CreateSignedJwtToken(username, access string) (string, error) {
 	return signedToken, nil
 }
 
-func keyFunc(t *jwt.Token) (interface{}, error) {
+func keyFunc(t *jwt.Token) (any, error) {
 	return []byte(config.JwtSecret()), nil
 }
 
