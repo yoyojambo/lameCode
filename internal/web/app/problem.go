@@ -6,49 +6,19 @@ import (
 	"lameCode/internal/platform/config"
 	"lameCode/internal/platform/data"
 	"lameCode/internal/platform/judge"
+	"lameCode/internal/web/ui"
 
-	"html/template"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-
-	"github.com/gomarkdown/markdown"
-	"github.com/gomarkdown/markdown/html"
-	"github.com/gomarkdown/markdown/parser"
 )
 
 func LoadProblemHandlers(r *gin.RouterGroup) {
 	r.GET("/", problemSetFunc)
 	r.GET("/problemlist", enableHtmxCache, problemsSetPageFunc)
 	r.GET("/problem/:id", enableHtmxCache, problemFunc)
-}
-
-// Local representation of a challenge.
-// Necessary so Gin renders the HTML description correctly.
-type ApiChallenge struct {
-	Id          int64
-	Title       string
-	Difficulty  int64
-	Description template.HTML
-}
-
-// Straight up from https://github.com/gomarkdown/markdown
-// Thanks for the library.
-func mdToHTML(md string) string {
-	md_bs := []byte(md)
-	// create markdown parser with extensions
-	extensions := parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock
-	p := parser.NewWithExtensions(extensions)
-	doc := p.Parse(md_bs)
-
-	// create HTML renderer with extensions
-	htmlFlags := html.CommonFlags | html.HrefTargetBlank
-	opts := html.RendererOptions{Flags: htmlFlags}
-	renderer := html.NewRenderer(opts)
-
-	return string(markdown.Render(doc, renderer))
 }
 
 // If the Markdown in Description field begins with "# " indicating a h1
@@ -105,21 +75,10 @@ func problemFunc(ctx *gin.Context) {
 
 	tryBetterTitle(&p)
 
-	data := gin.H{
-		"Problem": ApiChallenge{
-			Id:          p.ID,
-			Title:       p.Title,
-			Description: template.HTML(mdToHTML(p.Description)),
-			Difficulty:  p.Difficulty,
-		},
-
-		"LanguageOptions": judge.LanguageOptions(),
-	}
-
 	if ctx.GetHeader("HX-Request") == "true" {
-		ctx.HTML(http.StatusOK, "problem", data)
+		RenderTemplOK(ctx, ui.ProblemEditor(p, judge.LanguageOptions()))
 	} else {
-		RenderHTML(ctx, http.StatusOK, "problem.html", data)
+		RenderTemplOK(ctx, ui.ProblemPage(extractUserData(ctx), p, judge.LanguageOptions()))
 	}
 }
 

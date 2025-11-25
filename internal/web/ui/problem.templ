@@ -1,0 +1,121 @@
+package ui
+
+import (
+	"fmt"
+	"html/template"
+	"lameCode/internal/platform/data"
+	"lameCode/internal/platform/judge"
+
+	"github.com/gomarkdown/markdown"
+	"github.com/gomarkdown/markdown/html"
+	"github.com/gomarkdown/markdown/parser"
+)
+
+// Local representation of a challenge.
+// Necessary so Gin renders the HTML description correctly.
+type ApiChallenge struct {
+	Id          int64
+	Title       string
+	Difficulty  int64
+	Description template.HTML
+}
+
+// ProblemPage is the full-page for problems, including the editor,
+// submission/test buttons and results.
+templ ProblemPage(user UserData, challenge data.Challenge, languages []judge.LanguageOption) {
+	@Base(challenge.Title, user) {
+		@ProblemEditor(challenge, languages)
+	}
+}
+
+// Straight up from https://github.com/gomarkdown/markdown
+// Thanks for the library.
+func mdToHTML(md string) string {
+	md_bs := []byte(md)
+	// create markdown parser with extensions
+	extensions := parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock
+	p := parser.NewWithExtensions(extensions)
+	doc := p.Parse(md_bs)
+
+	// create HTML renderer with extensions
+	htmlFlags := html.CommonFlags | html.HrefTargetBlank
+	opts := html.RendererOptions{Flags: htmlFlags}
+	renderer := html.NewRenderer(opts)
+
+	return string(markdown.Render(doc, renderer))
+}
+
+// ProblemEditor is the partial within ProblemPage, including the editor,
+// submission/test buttons and results.
+templ ProblemEditor(challenge data.Challenge, languages []judge.LanguageOption) {
+	<title>{ challenge.Title }</title>
+	<div id="main" class="container">
+		<div class="row">
+			// Left Column: Problem Details
+			<div class="six columns box">
+				<h3>{ challenge.Title }</h3>
+				switch challenge.Difficulty {
+					case 1:
+						<span class="difficulty easy">Easy</span>
+					case 2:
+						<span class="difficulty medium">Medium</span>
+					case 3:
+						<span class="difficulty hard">Hard</span>
+					default:
+						<span class="difficulty">Not tagged</span>
+				}
+				// Problem description is rendered as HTML
+				<div id="problem-description">
+					@templ.Raw(mdToHTML(challenge.Description))
+				</div>
+			</div>
+			// Right Column: Code Editor and Results
+			<div class="six columns box" style="margin-left: 1%">
+				<div class="editor-container">
+					<div class="editor-top-bar">
+						<select id="language-select" name="language">
+							for _, lang := range languages {
+								<option value={ lang.Lang }>{ lang.PrettyName } ({ lang.Compiler })</option>
+							}
+						</select>
+						<button id="reset-button" type="button">Reset</button>
+					</div>
+					<div id="code-editor"></div>
+					<textarea id="code-input" name="code" hidden></textarea>
+					<div class="editor-bottom-bar">
+						<button
+							disabled?={ challenge.TestCount < 1 }
+							id="test-button"
+							hx-post={ fmt.Sprintf("/judge/test/%d", challenge.ID) }
+							hx-include="#code-input,#language-select"
+							hx-target="#results"
+							hx-swap="innerHTML"
+							hx-indicator=".spinner"
+							type="button"
+							onclick="document.getElementById('code-input').value = window.editor.getValue()"
+						>Test</button>
+						<button
+							id="submit-button"
+							class="button-primary"
+							hx-post={ fmt.Sprintf("/judge/submit/%d", challenge.ID) }
+							hx-include="#code-input,#language-select"
+							hx-target="#submission-modal .modal-content p"
+							hx-swap="innerHTML"
+							hx-indicator=".spinner"
+							type="button"
+							onclick="document.getElementById('code-input').value = window.editor.getValue()"
+						>Submit</button>
+						<div class="spinner">⏳</div>
+					</div>
+					<div id="results" class="results">No results yet.</div>
+				</div>
+			</div>
+			<div id="submission-modal" class="modal" style="display:none">
+				<div class="modal-content">
+					<span class="close" onclick="document.getElementById('submission-modal').style.display='none'">&times;</span>
+					<p>Your code has been submitted. We'll let you know the results soon!</p>
+				</div>
+			</div>
+		</div>
+	</div>
+}
