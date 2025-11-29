@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"lameCode/internal/platform/data"
 	"lameCode/internal/platform/judge"
+	"lameCode/internal/web/ui"
 	"net/http"
 	"strconv"
 	"strings"
@@ -20,7 +21,7 @@ type Submission struct {
 func LoadJudgeHandlers(r *gin.RouterGroup) {
 	g := r.Group("/judge")
 	g.POST("/test/:id", testSubmission)
-	g.POST("/submit", printSubmission)
+	g.POST("/submit/:id", printSubmission) // TODO: Break out tests behaviour and actually save submissions with submit
 }
 
 // printSubmission is just for testing the frontend
@@ -69,7 +70,7 @@ func testSubmission(ctx *gin.Context) {
 		if strings.HasPrefix(err.Error(), "Error compiling") {
 			nLine := strings.Index(err.Error(), "\n")
 			errmsg := err.Error()[nLine+1:]
-			ctx.HTML(http.StatusOK, "compiler-message", gin.H{"Message": errmsg})
+			RenderTemplOK(ctx, ui.CompilerMessage(errmsg))
 			return
 		}
 		// Error in any other phase
@@ -78,5 +79,5 @@ func testSubmission(ctx *gin.Context) {
 		return
 	}
 	
-	ctx.HTML(http.StatusOK, "result-table", results)
+	RenderTemplOK(ctx, ui.ResultTable(results))
 }

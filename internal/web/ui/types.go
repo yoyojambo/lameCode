@@ -30,3 +30,14 @@ type UserSearchResult struct {
 	NextPage    int64
 	CurrentPage int64
 }
+
+// ChallengePage holds pagination data for the challenge list
+type ChallengePage struct {
+	Challenges  []data.Challenge
+	HasPrev     bool
+	HasNext     bool
+	PrevPage    int64
+	NextPage    int64
+	CurrentPage int64
+}
+

@@ -19,14 +19,10 @@ templ AdminUsersPage(user UserData, stats UserManagementStats, adminUsers []data
 
 // Just content (for HTMX swaps)
 templ AdminUsersContent(stats UserManagementStats, adminUsers []data.User, normalUsers UserSearchResult) {
-	<div id="main" class="container">
-		<div class="row">
-			<div class="twelve columns">
-				<h2>User Management</h2>
-			</div>
-		</div>
+	<div id="main" class="max-w-6xl mx-auto px-5 py-6">
+		<h2 class="text-2xl font-semibold text-base-50 mb-6">User Management</h2>
 		
-		// Mini Dashboard (Placeholder)
+		// Mini Dashboard
 		@DashboardPlaceholder(stats)
 		
 		// Admin Users Section
@@ -39,38 +35,41 @@ templ AdminUsersContent(stats UserManagementStats, adminUsers []data.User, norma
 
 // Dashboard stats placeholder
 templ DashboardPlaceholder(stats UserManagementStats) {
-	<div class="row">
-		<div class="three columns box profile-stat-box">
-			<h4>{ fmt.Sprint(stats.TotalUsers) }</h4>
-			<p>Total Users</p>
+	<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+		<div class="bg-base-800 border border-base-600 rounded-lg p-4 text-center">
+			<h4 class="text-3xl font-bold text-primary-400">{ fmt.Sprint(stats.TotalUsers) }</h4>
+			<p class="text-base-100 text-sm mt-1">Total Users</p>
 		</div>
-		<div class="three columns box profile-stat-box">
-			<h4>{ fmt.Sprint(stats.AdminUsers) }</h4>
-			<p>Administrators</p>
+		<div class="bg-base-800 border border-base-600 rounded-lg p-4 text-center">
+			<h4 class="text-3xl font-bold text-accent-400">{ fmt.Sprint(stats.AdminUsers) }</h4>
+			<p class="text-base-100 text-sm mt-1">Administrators</p>
 		</div>
-		<div class="three columns box profile-stat-box">
-			<h4>{ fmt.Sprint(stats.NormalUsers) }</h4>
-			<p>Normal Users</p>
+		<div class="bg-base-800 border border-base-600 rounded-lg p-4 text-center">
+			<h4 class="text-3xl font-bold text-info-400">{ fmt.Sprint(stats.NormalUsers) }</h4>
+			<p class="text-base-100 text-sm mt-1">Normal Users</p>
 		</div>
-		<div class="three columns box profile-stat-box">
-			<h4>Coming Soon</h4>
-			<p>More Stats</p>
+		<div class="bg-base-800 border border-base-600 rounded-lg p-4 text-center">
+			<h4 class="text-xl font-bold text-accent-700 underline">Coming Soon</h4>
+			<p class="text-base-100 text-sm mt-1">More Stats</p>
 		</div>
 	</div>
 }
 
 // Admin Users Table
 templ AdminUsersSection(adminUsers []data.User) {
-	<div class="row">
-		<div class="twelve columns box">
-			<h4>Administrator Users ({ fmt.Sprint(len(adminUsers)) })</h4>
-			if len(adminUsers) > 0 {
-				<table class="u-full-width profile-table">
+	<div class="bg-base-800 border border-base-600 rounded-lg p-5 mb-6">
+		<h4 class="text-lg font-semibold text-base-50 mb-4">
+			Administrator Users 
+			<span class="text-primary-400">({ fmt.Sprint(len(adminUsers)) })</span>
+		</h4>
+		if len(adminUsers) > 0 {
+			<div class="overflow-x-auto">
+				<table class="w-full text-left text-sm">
 					<thead>
-						<tr>
-							<th>Username</th>
-							<th>Member Since</th>
-							<th>Actions</th>
+						<tr class="border-b border-primary-700 bg-primary-900/30">
+							<th class="py-2 px-3 text-primary-200 font-semibold">Username</th>
+							<th class="py-2 px-3 text-primary-200 font-semibold">Member Since</th>
+							<th class="py-2 px-3 text-primary-200 font-semibold">Actions</th>
 						</tr>
 					</thead>
 					<tbody id="admin-users-table">
@@ -79,23 +78,25 @@ templ AdminUsersSection(adminUsers []data.User) {
 						}
 					</tbody>
 				</table>
-			} else {
-				<p class="profile-no-data">No administrator users found.</p>
-			}
-		</div>
+			</div>
+		} else {
+			<p class="text-base-400 italic">No administrator users found.</p>
+		}
 	</div>
 }
 
 // Single admin user row
 templ AdminUserRow(u data.User) {
-	<tr>
-		<td>
-			<a href={ templ.URL("/user/" + u.Username) }>{ u.Username }</a>
+	<tr class="border-b border-base-700 hover:bg-base-700/50">
+		<td class="py-3 px-3">
+			<a href={ templ.URL("/user/" + u.Username) } class="text-primary-400 hover:text-primary-300">
+				{ u.Username }
+			</a>
 		</td>
-		<td>{ formatUnixDate(u.CreatedAt) }</td>
-		<td>
+		<td class="py-3 px-3 text-base-200">{ formatUnixDate(u.CreatedAt) }</td>
+		<td class="py-3 px-3 space-x-2">
 			<button
-				class="button"
+				class="bg-base-700 hover:bg-base-600 text-base-100 text-xs font-medium px-3 py-1.5 rounded border border-base-500"
 				hx-post={ fmt.Sprintf("/admin/users/%d/demote", u.ID) }
 				hx-target="#admin-users-table"
 				hx-swap="innerHTML"
@@ -104,7 +105,7 @@ templ AdminUserRow(u data.User) {
 				Demote
 			</button>
 			<button
-				class="button"
+				class="bg-error/20 hover:bg-error/30 text-error text-xs font-medium px-3 py-1.5 rounded border border-error/50"
 				hx-delete={ fmt.Sprintf("/admin/users/%d", u.ID) }
 				hx-target="#admin-users-table"
 				hx-swap="innerHTML"
@@ -118,34 +119,28 @@ templ AdminUserRow(u data.User) {
 
 // Normal Users Section with Search
 templ NormalUsersSection(result UserSearchResult) {
-	<div class="row">
-		<div class="twelve columns box">
-			<h4>Normal Users</h4>
-			
-			// Search form
-			<form hx-get="/admin/users/search" hx-target="#user-search-results" hx-swap="innerHTML">
-				<div class="row">
-					<div class="nine columns">
-						<input
-							type="text"
-							name="search"
-							placeholder="Search by username..."
-							value={ result.Query }
-							class="u-full-width"
-						/>
-					</div>
-					<div class="three columns">
-						<button type="submit" class="button button-primary u-full-width">
-							Search
-						</button>
-					</div>
-				</div>
-			</form>
-			
-			// Results container
-			<div id="user-search-results">
-				@UserSearchResults(result)
+	<div class="bg-base-800 border border-base-600 rounded-lg p-5">
+		<h4 class="text-lg font-semibold text-base-50 mb-4">Normal Users</h4>
+		
+		// Search form
+		<form hx-get="/admin/users/search" hx-target="#user-search-results" hx-swap="innerHTML" class="mb-4">
+			<div class="flex gap-3">
+				<input
+					type="text"
+					name="search"
+					placeholder="Search by username..."
+					value={ result.Query }
+					class="flex-1 bg-base-700 border border-base-500 rounded px-3 py-2 text-base-100 placeholder-base-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/30 outline-none"
+				/>
+				<button type="submit" class="bg-primary-600 hover:bg-primary-500 text-white font-medium px-5 py-2 rounded">
+					Search
+				</button>
 			</div>
+		</form>
+		
+		// Results container
+		<div id="user-search-results">
+			@UserSearchResults(result)
 		</div>
 	</div>
 }
@@ -153,26 +148,30 @@ templ NormalUsersSection(result UserSearchResult) {
 // User search results (swappable via HTMX)
 templ UserSearchResults(result UserSearchResult) {
 	if result.TotalCount > 0 {
-		<p>Showing { fmt.Sprint(len(result.Users)) } of { fmt.Sprint(result.TotalCount) } users</p>
+		<p class="text-base-300 text-sm mb-3">
+			Showing { fmt.Sprint(len(result.Users)) } of { fmt.Sprint(result.TotalCount) } users
+		</p>
 		
-		<table class="u-full-width profile-table">
-			<thead>
-				<tr>
-					<th>Username</th>
-					<th>Member Since</th>
-					<th>Actions</th>
-				</tr>
-			</thead>
-			<tbody id="normal-users-table">
-				for _, u := range result.Users {
-					@NormalUserRow(u)
-				}
-			</tbody>
-		</table>
+		<div class="overflow-x-auto">
+			<table class="w-full text-left text-sm">
+				<thead>
+					<tr class="border-b border-primary-700 bg-primary-900/30">
+						<th class="py-2 px-3 text-primary-200 font-semibold">Username</th>
+						<th class="py-2 px-3 text-primary-200 font-semibold">Member Since</th>
+						<th class="py-2 px-3 text-primary-200 font-semibold">Actions</th>
+					</tr>
+				</thead>
+				<tbody id="normal-users-table">
+					for _, u := range result.Users {
+						@NormalUserRow(u)
+					}
+				</tbody>
+			</table>
+		</div>
 		
 		// Pagination controls
 		if result.HasPrev || result.HasNext {
-			<div style="margin-top: 1rem">
+			<div class="flex gap-2 mt-4">
 				<button
 					if !result.HasPrev {
 						disabled
@@ -180,9 +179,9 @@ templ UserSearchResults(result UserSearchResult) {
 					hx-get={ fmt.Sprintf("/admin/users/search?search=%s&page=%d", result.Query, result.PrevPage) }
 					hx-target="#user-search-results"
 					hx-swap="innerHTML"
-					style="padding: 10px; cursor: pointer; line-height: normal"
+					class="bg-base-700 hover:bg-base-600 text-base-100 font-medium px-4 py-2 rounded border border-base-500 disabled:opacity-50 disabled:cursor-not-allowed"
 				>
-					&lt;&lt; Back
+					&larr; Back
 				</button>
 				
 				<button
@@ -192,14 +191,14 @@ templ UserSearchResults(result UserSearchResult) {
 					hx-get={ fmt.Sprintf("/admin/users/search?search=%s&page=%d", result.Query, result.NextPage) }
 					hx-target="#user-search-results"
 					hx-swap="innerHTML"
-					style="padding: 10px; cursor: pointer; line-height: normal"
+					class="bg-base-700 hover:bg-base-600 text-base-100 font-medium px-4 py-2 rounded border border-base-500 disabled:opacity-50 disabled:cursor-not-allowed"
 				>
-					Next &gt;&gt;
+					Next &rarr;
 				</button>
 			</div>
 		}
 	} else {
-		<p class="profile-no-data">
+		<p class="text-base-400 italic py-4">
 			if result.Query != "" {
 				No users found matching "{ result.Query }".
 			} else {
@@ -211,14 +210,16 @@ templ UserSearchResults(result UserSearchResult) {
 
 // Single normal user row
 templ NormalUserRow(u data.User) {
-	<tr>
-		<td>
-			<a href={ templ.URL("/user/" + u.Username) }>{ u.Username }</a>
+	<tr class="border-b border-base-700 hover:bg-base-700/50">
+		<td class="py-3 px-3">
+			<a href={ templ.URL("/user/" + u.Username) } class="text-primary-400 hover:text-primary-300">
+				{ u.Username }
+			</a>
 		</td>
-		<td>{ formatUnixDate(u.CreatedAt) }</td>
-		<td>
+		<td class="py-3 px-3 text-base-200">{ formatUnixDate(u.CreatedAt) }</td>
+		<td class="py-3 px-3 space-x-2">
 			<button
-				class="button"
+				class="bg-success/20 hover:bg-success/30 text-success text-xs font-medium px-3 py-1.5 rounded border border-success/50"
 				hx-post={ fmt.Sprintf("/admin/users/%d/promote", u.ID) }
 				hx-target="#normal-users-table"
 				hx-swap="innerHTML"
@@ -227,7 +228,7 @@ templ NormalUserRow(u data.User) {
 				Promote
 			</button>
 			<button
-				class="button"
+				class="bg-error/20 hover:bg-error/30 text-error text-xs font-medium px-3 py-1.5 rounded border border-error/50"
 				hx-delete={ fmt.Sprintf("/admin/users/%d", u.ID) }
 				hx-target="#normal-users-table"
 				hx-swap="innerHTML"

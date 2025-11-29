@@ -6,6 +6,7 @@ import (
 	"lameCode/internal/platform/config"
 	"lameCode/internal/platform/data"
 	"lameCode/internal/platform/session"
+	"lameCode/internal/web/ui"
 	"net/http"
 	"regexp"
 	"strings"
@@ -41,10 +42,10 @@ func logoutUserFunc(ctx *gin.Context) {
 
 // Login an Register pages
 func loginPageFunc(ctx *gin.Context) {
-	if boost := ctx.Request.Header["Hx-Boosted"]; len(boost) == 0 {
-		ctx.HTML(http.StatusOK, "login.html", gin.H{})
+	if ctx.GetHeader("Hx-Request") == "true" {
+		RenderTemplOK(ctx, ui.LoginContent(ui.FlashMessage{}))
 	} else {
-		ctx.HTML(http.StatusOK, "login", gin.H{})
+		RenderTemplOK(ctx, ui.LoginPage(extractUserData(ctx), ui.FlashMessage{}))
 	}
 }
 
@@ -59,17 +60,17 @@ func loginUserFunc(ctx *gin.Context) {
 
 	if err := ctx.ShouldBind(&req); err != nil {
 		l.Println("Failed login request. Could not bind login form: ", err)
-		ctx.HTML(http.StatusUnprocessableEntity, "login-message",
-			gin.H{"type": "error", "message": passwordMsg},
-		)
+		RenderTemplOK(ctx, ui.FlashMessagePartial(
+			ui.FlashMessage{
+				Type: "error", Message: "Username or password is not of valid lenght"}))
 		return
 	}
 
 	// Check content validity
 	if !usernameRegex.MatchString(req.Username) || !passwordRegex.MatchString(req.Password) {
-		ctx.HTML(http.StatusUnprocessableEntity, "login-message",
-			gin.H{"type": "error", "message": passwordMsg},
-		)
+		RenderTemplOK(ctx, ui.FlashMessagePartial(
+			ui.FlashMessage{
+				Type: "error", Message: passwordMsg}))
 		return
 	}
 
@@ -79,26 +80,25 @@ func loginUserFunc(ctx *gin.Context) {
 	if err != nil {
 		// If user not found
 		if strings.Contains(err.Error(), "no rows") {
-			ctx.HTML(http.StatusOK, "login-message",
-				gin.H{"type": "error", "message": passwordMsg},
-			)
-			return
+			RenderTemplOK(ctx, ui.FlashMessagePartial(
+				ui.FlashMessage{Type: "error", Message: passwordMsg}))
 		} else { // Anything else
-			ctx.AbortWithError(http.StatusInternalServerError, err)
-			return
+			ctx.AbortWithError(http.StatusInternalServerError,
+				fmt.Errorf("error getting user: %w", err))
 		}
+		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(req.Password)); err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			ctx.HTML(http.StatusOK, "login-message",
-				gin.H{"type": "error", "message": passwordMsg},
-			)
-			return
+			RenderTemplOK(ctx, ui.FlashMessagePartial(
+				ui.FlashMessage{Type: "error", Message: passwordMsg}))
+		} else {
+			l.Printf("Comparison of hash %s and %s failed: %v\n",
+				user.PasswordHash, req.Password, err)
+			ctx.AbortWithError(http.StatusInternalServerError,
+				fmt.Errorf("error comparing password: %w", err))
 		}
-		l.Printf("Comparison of hash %s and %s failed: %v\n",
-			user.PasswordHash, req.Password, err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -127,16 +127,16 @@ func registerUserFunc(ctx *gin.Context) {
 	}
 
 	if err := ctx.ShouldBind(&req); err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		RenderTemplOK(ctx, ui.FlashMessagePartial(
+			ui.FlashMessage{
+				Type: "error", Message: "Username or password is not of valid lenght"}))
 		return
 	}
 
 	// Flash message
 	if req.Password != req.Confirmation {
-		ctx.HTML(http.StatusOK, "login-message",
-			gin.H{
-				"type":    "error",
-				"message": "Passwords don't match"})
+			RenderTemplOK(ctx, ui.FlashMessagePartial(
+				ui.FlashMessage{Type: "error", Message: "Passwords don't match"}))
 
 		return
 	}
@@ -144,7 +144,7 @@ func registerUserFunc(ctx *gin.Context) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), 0)
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError,
-			fmt.Errorf("Password processing failed: %w", err))
+			fmt.Errorf("Password hashing failed: %w", err))
 		return
 	} else if config.Debug() {
 		l.Printf("Registering new user %s\n", req.Username)
@@ -160,10 +160,10 @@ func registerUserFunc(ctx *gin.Context) {
 			l.Printf("Cannot register an existing user (%s)\n", req.Username)
 
 			// Flash message response
-			ctx.HTML(http.StatusOK, "login-message",
-				gin.H{
-					"type":    "error",
-					"message": fmt.Sprintf("User %s already exists...", req.Username)})
+			RenderTemplOK(ctx, ui.FlashMessagePartial(
+				ui.FlashMessage{
+					Type: "error",
+					Message: fmt.Sprintf("User %s already exists...", req.Username)}))
 
 		} else {
 			ctx.AbortWithError(http.StatusInternalServerError,

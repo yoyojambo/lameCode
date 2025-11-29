@@ -3,6 +3,7 @@ package app
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"lameCode/internal/platform/config"
 	"lameCode/internal/platform/data"
 	"lameCode/internal/platform/judge"
@@ -86,14 +87,15 @@ func problemSetFunc(ctx *gin.Context) {
 	// Generate data
 	pageData, err := getPageData(ctx, 1)
 	if err != nil {
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		ctx.AbortWithError(http.StatusInternalServerError,
+			fmt.Errorf("Error getting problems list: %w", err))
 		return
 	}
 
 	if ctx.GetHeader("HX-Request") == "true" {
-		ctx.HTML(http.StatusOK, "problemTable", pageData)
+		RenderTemplOK(ctx, ui.ProblemsContent(pageData))
 	} else {
-		RenderHTML(ctx, http.StatusOK, "problems.html", pageData)
+		RenderTemplOK(ctx, ui.ProblemsPage(extractUserData(ctx), pageData))
 	}
 }
 
@@ -117,20 +119,10 @@ func problemsSetPageFunc(ctx *gin.Context) {
 		l.Println("Not showing any challenges")
 	}
 
-	ctx.HTML(http.StatusOK, "challengeList", pageData)
+	RenderTemplOK(ctx, ui.ProblemsList(pageData))
 }
 
-// Information for a list of challenges, from a paged request
-type ChallengePage struct {
-	Challenges  []data.Challenge `json:"challenges"`
-	HasPrev     bool             `json:"has_prev"`
-	HasNext     bool             `json:"has_next"`
-	PrevPage    int64            `json:"prev_page"`
-	NextPage    int64            `json:"next_page"`
-	CurrentPage int64            `json:"current_page"`
-}
-
-func getPageData(ctx *gin.Context, page int64) (ChallengePage, error) {
+func getPageData(ctx *gin.Context, page int64) (ui.ChallengePage, error) {
 	const pageSize = 10
 	offset := (page - 1) * pageSize
 
@@ -139,7 +131,7 @@ func getPageData(ctx *gin.Context, page int64) (ChallengePage, error) {
 
 	if err != nil {
 		l.Printf("error fetching paginated challenges: %v", err)
-		return ChallengePage{}, err
+		return ui.ChallengePage{}, err
 	}
 	if len(challenges_data) == 0 {
 		l.Println("No challenges found...")
@@ -156,7 +148,7 @@ func getPageData(ctx *gin.Context, page int64) (ChallengePage, error) {
 	hasNext := len(challenges_data) > pageSize
 
 	// Build the page structure.
-	return ChallengePage{
+	return ui.ChallengePage{
 		Challenges:  challenges_data,
 		HasPrev:     hasPrev,
 		HasNext:     hasNext,

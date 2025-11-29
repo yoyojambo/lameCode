@@ -1,0 +1,61 @@
+@import "tailwindcss";
+@config "../../../tailwind.config.js";
+@source "./*.templ";
+@source "./*_templ.go";
+
+@theme {
+  /* Primary - Purple */
+  --color-primary-50: #faf5ff;
+  --color-primary-100: #f3e8ff;
+  --color-primary-200: #e9d5ff;
+  --color-primary-300: #d8b4fe;
+  --color-primary-400: #c084fc;
+  --color-primary-500: #a855f7;
+  --color-primary-600: #9333ea;
+  --color-primary-700: #7e22ce;
+  --color-primary-800: #6b21a8;
+  --color-primary-900: #581c87;
+
+  /* Accent Orange */
+  --color-accent-50: #fff7ed;
+  --color-accent-100: #ffedd5;
+  --color-accent-200: #fed7aa;
+  --color-accent-300: #fdba74;
+  --color-accent-400: #fb923c;
+  --color-accent-500: #f97316;
+  --color-accent-600: #ea580c;
+  --color-accent-700: #c2410c;
+  --color-accent-800: #9a3412;
+  --color-accent-900: #7c2d12;
+
+  /* Info Blue */
+  --color-info-50: #eff6ff;
+  --color-info-100: #dbeafe;
+  --color-info-200: #bfdbfe;
+  --color-info-300: #93c5fd;
+  --color-info-400: #60a5fa;
+  --color-info-500: #3b82f6;
+  --color-info-600: #2563eb;
+  --color-info-700: #1d4ed8;
+  --color-info-800: #1e40af;
+  --color-info-900: #1e3a8a;
+
+  /* Dark surfaces - purple-tinted blacks */
+  --color-base-950: #0c0a12;
+  --color-base-900: #13101c;
+  --color-base-800: #1a1625;
+  --color-base-700: #241f30;
+  --color-base-600: #2e283c;
+  --color-base-500: #3d3551;
+  --color-base-400: #524a6a;
+  --color-base-300: #6b6188;
+  --color-base-200: #9088a8;
+  --color-base-100: #b8b1cb;
+  --color-base-50: #dedae8;
+
+  
+  /* Semantic colors */
+  --color-success: #22c55e;
+  --color-warning: #eab308;
+  --color-error: #ef4444;
+}

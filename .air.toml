@@ -6,21 +6,25 @@ tmp_dir = "tmp"
   args_bin = []
   bin = "./tmp/server --debug"
   cmd = "go build -o ./tmp/server ./cmd/server"
-  delay = 1000
+  delay = 500
   exclude_dir = ["test", "tmp", "vendor"]
   exclude_file = ["platform/data/queries.sql.go"]
   exclude_regex = ["_test\\.go", "_templ\\.go"]
   exclude_unchanged = true
   follow_symlink = false
   include_dir = ["cmd/server", "internal"]
-  include_ext = ["go", "tpl", "html", "sql"]
+  include_ext = ["go", "templ", "html", "sql", "css"]
   include_file = []
   kill_delay = "0s"
   log = "build-errors.log"
   poll = false
   poll_interval = 0
   post_cmd = []
-  pre_cmd = ["sqlc generate", "templ generate -lazy -path ./internal/web/ui/"]
+  pre_cmd = [
+  		  "sqlc generate",
+		  "templ generate -lazy -path ./internal/web/ui/",
+		  "tailwindcss -i ./internal/web/ui/input.css -o ./internal/web/assets/static/output.css"
+		  ]
   rerun = false
   rerun_delay = 500
   send_interrupt = false

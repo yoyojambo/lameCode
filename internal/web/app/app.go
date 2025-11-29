@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"lameCode/internal/platform/session"
 	"lameCode/internal/web/ui"
 	"log"
@@ -18,7 +19,7 @@ var l = log.New(os.Stdout, "[app] ", log.LstdFlags|log.Lmsgprefix)
 
 type TemplateData struct {
 	User ui.UserData
-	Data interface{}
+	Data any
 }
 
 
@@ -26,7 +27,7 @@ type TemplateData struct {
 func RenderTempl(ctx *gin.Context, status int, c templ.Component) {
 	ctx.Status(status)
 	if err := c.Render(ctx.Request.Context(), ctx.Writer); err != nil {
-		ctx.Error(err)
+		ctx.Error(fmt.Errorf("error rendering ui template: %w", err))
 	}
 }
 
@@ -35,7 +36,7 @@ func RenderTemplOK(ctx *gin.Context, c templ.Component) {
 	RenderTempl(ctx, http.StatusOK, c)
 }
 
-func RenderHTML(ctx *gin.Context, code int, name string, data interface{}) {
+func RenderHTML(ctx *gin.Context, code int, name string, data any) {
 	userData := extractUserData(ctx)
 
 	templateData := TemplateData{
