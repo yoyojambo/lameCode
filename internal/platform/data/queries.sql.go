@@ -84,14 +84,11 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
 }
 
 const getAdminStats = `-- name: GetAdminStats :one
-SELECT 
-    COUNT(DISTINCT c.id) as total_challenges,
-    COUNT(DISTINCT u.id) as total_users,
-    COUNT(DISTINCT s.id) as total_submissions,
-    COUNT(DISTINCT CASE WHEN s.status = 'accepted' THEN s.id END) as accepted_submissions
-FROM challenges c
-CROSS JOIN users u
-CROSS JOIN solutions s
+SELECT
+    (SELECT COUNT(*) FROM challenges) as total_challenges,
+    (SELECT COUNT(*) FROM users) as total_users,
+    (SELECT COUNT(*) FROM solutions) as total_submissions,
+    (SELECT COUNT(*) FROM solutions WHERE status = 'accepted') as accepted_submissions
 `
 
 type GetAdminStatsRow struct {

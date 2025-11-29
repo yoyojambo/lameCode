@@ -5,7 +5,6 @@ package assets
 import (
 	"embed"
 	"flag"
-	"html/template"
 	"io/fs"
 	"log"
 	"net/http"
@@ -14,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//go:embed static templates
+//go:embed static
 var content embed.FS
 
 // Optimization for embedded files, copying them
@@ -30,15 +29,6 @@ var l *log.Logger = log.New(os.Stdout, "[ASSETS LOAD] ", log.LstdFlags | log.Lms
 // copy to a temp directory at startup.
 func LoadStaticContent(r *gin.Engine)  {
 	l.Println("Loading assets from files embedded at compile time")
-	// Loading templates
-	templs, err := template.New("").
-		ParseFS(content, "templates/*")
-	
-	if err != nil {
-		l.Fatalf("Error parsing templates:\n%s\n", err)
-	}
-
-	r.SetHTMLTemplate(templs)
 
 	//Loading static assets
 	r.StaticFileFS("/favicon.ico", "static/favicon.ico", http.FS(content))

@@ -15,7 +15,6 @@ var assetsDir = flag.String("assetsDir", "./web", "Directory with location of as
 // it assumes the contents to be there.
 func loadStaticContent(r *gin.Engine)  {
 	l.Println("Loading assets (dynamic) from " + *assetsDir)
-	r.LoadHTMLGlob(*assetsDir + "/templates/*")
 	r.StaticFile("/favicon.ico", *assetsDir + "/assets/favicon.ico")
 	r.Static("/assets", *assetsDir + "/assets")
 }

@@ -41,3 +41,21 @@ type ChallengePage struct {
 	CurrentPage int64
 }
 
+// Admin views - thin wrappers around repo types
+type AdminDashboardView struct {
+	data.GetAdminStatsRow
+}
+
+type AdminProblemsView struct {
+	Problems []data.GetProblemsForAdminRow
+}
+
+type AdminProblemFormView struct {
+	Problem *data.Challenge // nil for create, set for edit
+	Tests   []data.ChallengeTest     // empty for create
+}
+
+type AdminTestsView struct {
+	Problem data.Challenge
+	Tests   []data.ChallengeTest
+}

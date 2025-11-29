@@ -1,0 +1,59 @@
+package ui
+
+import "fmt"
+
+// Full page
+templ AdminDashboardPage(user UserData, view AdminDashboardView) {
+	@Base("Admin Dashboard", user) {
+		@AdminDashboardContent(view)
+	}
+}
+
+// Content (for HTMX swaps)
+templ AdminDashboardContent(view AdminDashboardView) {
+	<div id="main" class="max-w-6xl mx-auto px-5 py-6 space-y-6">
+		<h2 class="text-2xl font-bold text-base-50">Admin Dashboard</h2>
+
+		// Stats grid
+		<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+			@adminStatCard(fmt.Sprint(view.TotalChallenges), "Total Challenges", "primary")
+			@adminStatCard(fmt.Sprint(view.TotalUsers), "Total Users", "info")
+			@adminStatCard(fmt.Sprint(view.TotalSubmissions), "Total Submissions", "accent")
+			@adminStatCard(fmt.Sprint(view.AcceptedSubmissions), "Accepted Solutions", "success")
+		</div>
+
+		// Quick actions
+		<div class="bg-base-800 border border-base-600 rounded-lg p-5">
+			<h4 class="text-lg font-semibold text-base-50 mb-4">Quick Actions</h4>
+			<div class="flex flex-wrap gap-3">
+				<a href="/admin/problems" 
+				   class="bg-primary-600 hover:bg-primary-500 text-white font-medium px-4 py-2 rounded">
+					Manage Problems
+				</a>
+				<a href="/admin/problems/new" 
+				   class="bg-accent-500 hover:bg-accent-400 text-white font-medium px-4 py-2 rounded">
+					Create New Problem
+				</a>
+				<a href="/admin/users" 
+				   class="bg-info-600 hover:bg-info-500 text-white font-medium px-4 py-2 rounded">
+					Manage Users
+				</a>
+			</div>
+		</div>
+	</div>
+}
+
+templ adminStatCard(value string, label string, color string) {
+	<div class="bg-base-800 border border-base-600 rounded-lg p-5 text-center">
+		<h4 class={
+			"text-3xl font-bold",
+			templ.KV("text-primary-400", color == "primary"),
+			templ.KV("text-info-400", color == "info"),
+			templ.KV("text-accent-400", color == "accent"),
+			templ.KV("text-success", color == "success"),
+		}>
+			{ value }
+		</h4>
+		<p class="text-base-200 text-sm mt-1">{ label }</p>
+	</div>
+}

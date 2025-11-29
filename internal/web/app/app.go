@@ -22,6 +22,10 @@ type TemplateData struct {
 	Data any
 }
 
+// Helper
+func isHtmxBoosted(ctx *gin.Context) bool {
+	return ctx.GetHeader("HX-Boosted") != ""
+}
 
 // RenderTempl renders a templ component with a given status code
 func RenderTempl(ctx *gin.Context, status int, c templ.Component) {
@@ -34,17 +38,6 @@ func RenderTempl(ctx *gin.Context, status int, c templ.Component) {
 // RenderTemplOK renders a templ component with 200 OK status
 func RenderTemplOK(ctx *gin.Context, c templ.Component) {
 	RenderTempl(ctx, http.StatusOK, c)
-}
-
-func RenderHTML(ctx *gin.Context, code int, name string, data any) {
-	userData := extractUserData(ctx)
-
-	templateData := TemplateData{
-		User: userData,
-		Data: data,
-	}
-
-	ctx.HTML(code, name, templateData)
 }
 
 func extractUserData(ctx *gin.Context) ui.UserData {

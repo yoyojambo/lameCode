@@ -1,0 +1,175 @@
+package ui
+
+import (
+	"fmt"
+	"lameCode/internal/platform/data"
+)
+
+// Full page
+templ AdminTestsPage(user UserData, view AdminTestsView) {
+	@Base("Manage Tests: " + view.Problem.Title, user) {
+		@AdminTestsContent(view)
+	}
+}
+
+// Content (for HTMX swaps)
+templ AdminTestsContent(view AdminTestsView) {
+	<title>{"Manage Tests: " + view.Problem.Title}</title>
+	<div id="main" class="max-w-5xl mx-auto px-5 py-6 space-y-6">
+		<div class="flex items-center gap-4">
+			<a href={ templ.URL(fmt.Sprintf("/admin/problems/%d/edit", view.Problem.ID)) } 
+			   class="text-base-300 hover:text-base-500">&larr; Back to Problem</a>
+			<h2 class="text-2xl font-bold text-base-700">
+				Manage Tests: <span class="text-primary-700">{ view.Problem.Title }</span>
+			</h2>
+		</div>
+
+		// Add new test form
+		<div class="bg-base-800 border border-base-600 rounded-lg p-5">
+			<h4 class="text-lg font-semibold text-base-50 mb-4">Add New Test Case</h4>
+			<form 
+				hx-post={ fmt.Sprintf("/admin/problems/%d/tests", view.Problem.ID) }
+				hx-swap="none"
+				class="space-y-4"
+			>
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+					<div>
+						<label for="new-input" class="block text-base-100 font-medium mb-2">Input</label>
+						<textarea 
+							id="new-input" 
+							name="input"
+							required
+							rows="4"
+							class="w-full bg-base-700 border border-base-500 rounded px-3 py-2 text-base-50 placeholder-base-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/30 outline-none font-mono text-sm"
+							placeholder="Test input data..."
+						></textarea>
+					</div>
+					<div>
+						<label for="new-output" class="block text-base-100 font-medium mb-2">Expected Output</label>
+						<textarea 
+							id="new-output" 
+							name="output"
+							required
+							rows="4"
+							class="w-full bg-base-700 border border-base-500 rounded px-3 py-2 text-base-50 placeholder-base-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/30 outline-none font-mono text-sm"
+							placeholder="Expected output..."
+						></textarea>
+					</div>
+				</div>
+				<div class="flex justify-end">
+					<button 
+						type="submit"
+						class="bg-accent-500 hover:bg-accent-400 text-white font-medium px-4 py-2 rounded"
+					>
+						+ Add Test Case
+					</button>
+				</div>
+			</form>
+		</div>
+
+		// Existing tests
+		<div class="bg-base-800 border border-base-600 rounded-lg p-5">
+			<h4 class="text-lg font-semibold text-base-50 mb-4">
+				Existing Test Cases 
+				<span class="text-primary-400">({ fmt.Sprint(len(view.Tests)) })</span>
+			</h4>
+
+			if len(view.Tests) > 0 {
+				<div class="space-y-4">
+					for i, test := range view.Tests {
+						@adminTestRow(view.Problem.ID, test, i+1)
+					}
+				</div>
+			} else {
+				<p class="text-base-300 italic py-4">No test cases yet. Add one above.</p>
+			}
+		</div>
+	</div>
+}
+
+templ adminTestRow(problemID int64, test data.ChallengeTest, num int) {
+	<div class="border border-base-600 rounded-lg p-4 bg-base-900/50">
+		<div class="flex justify-between items-start mb-3">
+			<h5 class="text-base-50 font-semibold">Test #{ fmt.Sprint(num) }</h5>
+			<div class="flex gap-2">
+				<button
+					type="button"
+					onclick={ toggleEdit(test.ID) }
+					class="bg-base-700 hover:bg-base-600 text-base-100 text-xs font-medium px-3 py-1.5 rounded border border-base-500"
+				>
+					Edit
+				</button>
+				<button
+					hx-delete={ fmt.Sprintf("/admin/problems/%d/tests/%d", problemID, test.ID) }
+					hx-confirm="Delete this test case?"
+					class="bg-error/20 hover:bg-error/30 text-red-300 text-xs font-medium px-3 py-1.5 rounded border border-error/50"
+				>
+					Delete
+				</button>
+			</div>
+		</div>
+
+		// Display view
+		<div id={ fmt.Sprintf("test-view-%d", test.ID) } class="grid grid-cols-1 md:grid-cols-2 gap-4">
+			<div>
+				<p class="text-base-300 text-xs uppercase tracking-wide mb-1">Input</p>
+				<pre class="bg-base-950 border border-base-700 rounded p-3 text-base-100 text-sm overflow-auto max-h-32">{ test.InputData }</pre>
+			</div>
+			<div>
+				<p class="text-base-300 text-xs uppercase tracking-wide mb-1">Expected Output</p>
+				<pre class="bg-base-950 border border-base-700 rounded p-3 text-base-100 text-sm overflow-auto max-h-32">{ test.ExpectedOutput }</pre>
+			</div>
+		</div>
+
+		// Edit form (hidden by default)
+		<form 
+			id={ fmt.Sprintf("test-edit-%d", test.ID) }
+			class="hidden"
+			hx-put={ fmt.Sprintf("/admin/problems/%d/tests/%d", problemID, test.ID) }
+			hx-swap="none"
+		>
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+				<div>
+					<label class="block text-base-300 text-xs uppercase tracking-wide mb-1">Input</label>
+					<textarea 
+						name="input"
+						required
+						rows="4"
+						class="w-full bg-base-700 border border-base-500 rounded px-3 py-2 text-base-50 focus:border-primary-500 outline-none font-mono text-sm"
+					>{ test.InputData }</textarea>
+				</div>
+				<div>
+					<label class="block text-base-300 text-xs uppercase tracking-wide mb-1">Expected Output</label>
+					<textarea 
+						name="output"
+						required
+						rows="4"
+						class="w-full bg-base-700 border border-base-500 rounded px-3 py-2 text-base-50 focus:border-primary-500 outline-none font-mono text-sm"
+					>{ test.ExpectedOutput }</textarea>
+				</div>
+			</div>
+			<div class="flex justify-end gap-2">
+				<button 
+					type="button"
+					onclick={ toggleEdit(test.ID) }
+					class="bg-base-700 hover:bg-base-600 text-base-100 text-xs font-medium px-3 py-1.5 rounded border border-base-500"
+				>
+					Cancel
+				</button>
+				<button 
+					type="submit"
+					class="bg-primary-600 hover:bg-primary-500 text-white text-xs font-medium px-3 py-1.5 rounded"
+				>
+					Save
+				</button>
+			</div>
+		</form>
+	</div>
+}
+
+script toggleEdit(testID int64) {
+	const view = document.getElementById(`test-view-${testID}`);
+	const edit = document.getElementById(`test-edit-${testID}`);
+	view.classList.toggle('hidden');
+	edit.classList.toggle('hidden');
+}

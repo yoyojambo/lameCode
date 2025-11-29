@@ -1,0 +1,111 @@
+package ui
+
+import (
+	"fmt"
+	"lameCode/internal/platform/data"
+	"time"
+)
+
+func truncate(s string, max int) string {
+	if len(s) <= max {
+		return s
+	}
+	return s[:max] + "..."
+}
+
+func formatDate(ts int64) string {
+	return time.Unix(ts, 0).Format("Jan 2, 2006")
+}
+
+// Full page
+templ AdminProblemsPage(user UserData, view AdminProblemsView) {
+	@Base("Manage Problems", user) {
+		@AdminProblemsContent(view)
+	}
+}
+
+// Content (for HTMX swaps)
+templ AdminProblemsContent(view AdminProblemsView) {
+	<div id="main" class="max-w-6xl mx-auto px-5 py-6 space-y-6">
+		<div class="flex justify-between items-center">
+			<h2 class="text-2xl font-bold text-base-50">Manage Problems</h2>
+			<a href="/admin/problems/new" hx-boost="true" hx-target="#main" hx-swap="outerHTML"
+			   class="bg-accent-500 hover:bg-accent-400 text-white font-medium px-4 py-2 rounded">
+				+ New Problem
+			</a>
+		</div>
+
+		<div class="bg-base-800 border border-base-600 rounded-lg p-5">
+			if len(view.Problems) > 0 {
+				<div class="overflow-x-auto">
+					<table class="w-full text-left text-sm">
+						<thead>
+							<tr class="border-b-2 border-primary-700 bg-primary-900/30">
+								<th class="py-3 px-3 text-primary-100 font-semibold">Title</th>
+								<th class="py-3 px-3 text-primary-100 font-semibold">Difficulty</th>
+								<th class="py-3 px-3 text-primary-100 font-semibold">Tests</th>
+								<th class="py-3 px-3 text-primary-100 font-semibold">Solvers</th>
+								<th class="py-3 px-3 text-primary-100 font-semibold">Submissions</th>
+								<th class="py-3 px-3 text-primary-100 font-semibold">Created</th>
+								<th class="py-3 px-3 text-primary-100 font-semibold">Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							for _, p := range view.Problems {
+								@adminProblemRow(p)
+							}
+						</tbody>
+					</table>
+				</div>
+			} else {
+				<div class="text-center py-8">
+					<p class="text-base-300 mb-4">No problems yet.</p>
+					<a href="/admin/problems/new" 
+					   class="bg-primary-600 hover:bg-primary-500 text-white font-medium px-4 py-2 rounded">
+						Create your first problem
+					</a>
+				</div>
+			}
+		</div>
+	</div>
+}
+
+templ adminProblemRow(p data.GetProblemsForAdminRow) {
+	<tr class="border-b border-base-700 hover:bg-base-700/50">
+		<td class="py-3 px-3">
+			<a href={ templ.URL(fmt.Sprintf("/problem/%d", p.ID)) } 
+			   class="text-primary-400 hover:text-primary-300 font-medium">
+				{ p.Title }
+			</a>
+			<p class="text-base-400 text-xs mt-1">{ truncate(p.Description, 60) }</p>
+		</td>
+		<td class="py-3 px-3">
+			@difficultyBadge(p.Difficulty)
+		</td>
+		<td class="py-3 px-3 text-base-100">{ fmt.Sprint(p.TestCount) }</td>
+		<td class="py-3 px-3 text-base-100">{ fmt.Sprint(p.SolverCount) }</td>
+		<td class="py-3 px-3 text-base-100">{ fmt.Sprint(p.SubmissionCount) }</td>
+		<td class="py-3 px-3 text-base-200">{ formatDate(p.CreatedAt) }</td>
+		<td class="py-3 px-3">
+			<div class="flex gap-2" hx-boost="true" hx-target="#main" hx-swap="outerHTML" >
+				<a href={ templ.URL(fmt.Sprintf("/admin/problems/%d/edit", p.ID)) }
+				   class="bg-base-700 hover:bg-base-600 text-base-100 text-xs font-medium px-3 py-1.5 rounded border border-base-500">
+					Edit
+				</a>
+				<a href={ templ.URL(fmt.Sprintf("/admin/problems/%d/tests", p.ID)) }
+				   class="bg-info-600/20 hover:bg-info-600/30 text-info-300 text-xs font-medium px-3 py-1.5 rounded border border-info-500/50">
+					Tests
+				</a>
+				
+				// deletes all this templ
+				<button
+					hx-target="closest tr"
+					hx-delete={ fmt.Sprintf("/admin/problems/%d", p.ID) }
+					hx-confirm={ fmt.Sprintf("Delete '%s'? This cannot be undone.", p.Title) }
+					class="bg-error/20 hover:bg-error/30 text-red-300 text-xs font-medium px-3 py-1.5 rounded border border-error/50">
+					Delete
+				</button>
+			</div>
+		</td>
+	</tr>
+}

@@ -1,0 +1,151 @@
+package ui
+
+import "fmt"
+
+// Full page
+templ AdminProblemFormPage(user UserData, view AdminProblemFormView) {
+	@Base(problemFormTitle(view), user) {
+		@AdminProblemFormContent(view)
+	}
+}
+
+func problemFormTitle(view AdminProblemFormView) string {
+	if view.Problem != nil {
+		return "Edit: " + view.Problem.Title
+	}
+	return "Create New Problem"
+}
+
+// Content (for HTMX swaps)
+templ AdminProblemFormContent(view AdminProblemFormView) {
+	<title>{problemFormTitle(view)}</title>
+	<div id="main" class="max-w-4xl mx-auto px-5 py-6 space-y-6">
+		<div class="flex items-center gap-4">
+			<a hx-boost="true" hx-swap="outerHTML show:#navbar:top" hx-target="#main" href="/admin/problems" class="text-base-300 hover:text-base-500">&larr; Back to Problems</a>
+			<h2 class="text-2xl font-bold text-base-700">
+				if view.Problem != nil {
+					Edit Problem: <span class="text-primary-700">{ view.Problem.Title }</span>
+				} else {
+					Create New Problem
+				}
+			</h2>
+		</div>
+
+		// Form message target
+		<div id="form-message"></div>
+
+		<div class="bg-base-800 border border-base-600 rounded-lg p-6">
+			<form 
+				if view.Problem != nil {
+					hx-post={ fmt.Sprintf("/admin/problems/%d/edit", view.Problem.ID) }
+				} else {
+					hx-post="/admin/problems/new"
+				}
+				hx-target="#form-message"
+				hx-swap="innerHTML"
+				class="space-y-5"
+			>
+				<div>
+					<label for="title" class="block text-base-100 font-medium mb-2">Title</label>
+					<input 
+						type="text" 
+						id="title" 
+						name="title"
+						if view.Problem != nil {
+							value={ view.Problem.Title }
+						}
+						required
+						minlength="3"
+						maxlength="200"
+						class="w-full bg-base-700 border border-base-500 rounded px-3 py-2 text-base-50 placeholder-base-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/30 outline-none"
+						placeholder="Two Sum, Binary Search, etc."
+					/>
+				</div>
+
+				<div>
+					<label for="difficulty" class="block text-base-100 font-medium mb-2">Difficulty</label>
+					<select 
+						id="difficulty" 
+						name="difficulty"
+						required
+						class="w-full bg-base-700 border border-base-500 rounded px-3 py-2 text-base-50 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/30 outline-none"
+					>
+						<option value="0" selected?={ view.Problem == nil || view.Problem.Difficulty == 0 }>Untagged</option>
+						<option value="1" selected?={ view.Problem != nil && view.Problem.Difficulty == 1 }>Easy</option>
+						<option value="2" selected?={ view.Problem != nil && view.Problem.Difficulty == 2 }>Medium</option>
+						<option value="3" selected?={ view.Problem != nil && view.Problem.Difficulty == 3 }>Hard</option>
+					</select>
+				</div>
+
+				<div>
+					<label for="description" class="block text-base-100 font-medium mb-2">
+						Description 
+						<span class="text-base-400 font-normal">(Markdown supported)</span>
+					</label>
+					<textarea 
+						id="description" 
+						name="description"
+						required
+						minlength="10"
+						rows="12"
+						class="w-full bg-base-700 border border-base-500 rounded px-3 py-2 text-base-50 placeholder-base-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/30 outline-none font-mono text-sm"
+						placeholder="Describe the problem, input format, output format, constraints..."
+					>
+						if view.Problem != nil {
+							{ view.Problem.Description }
+						}
+					</textarea>
+				</div>
+
+				<div class="flex justify-end gap-3 pt-4 border-t border-base-700">
+					<a href="/admin/problems" 
+					   class="bg-base-700 hover:bg-base-600 text-base-100 font-medium px-5 py-2 rounded border border-base-500">
+						Cancel
+					</a>
+					<button 
+						type="submit"
+						class="bg-primary-600 hover:bg-primary-500 text-white font-medium px-5 py-2 rounded"
+					>
+						if view.Problem != nil {
+							Save Changes
+						} else {
+							Create Problem
+						}
+					</button>
+				</div>
+			</form>
+		</div>
+
+		// Show test management link if editing
+		if view.Problem != nil {
+			<div class="bg-base-800 border border-base-600 rounded-lg p-5">
+				<div class="flex justify-between items-center">
+					<div>
+						<h4 class="text-lg font-semibold text-base-50">Test Cases</h4>
+						<p class="text-base-300 text-sm mt-1">
+							{ fmt.Sprint(len(view.Tests)) } test(s) configured
+						</p>
+					</div>
+					<a href={ templ.URL(fmt.Sprintf("/admin/problems/%d/tests", view.Problem.ID)) }
+					   class="bg-info-600 hover:bg-info-500 text-white font-medium px-4 py-2 rounded">
+						Manage Tests
+					</a>
+				</div>
+			</div>
+		}
+	</div>
+}
+
+// Success message partial
+templ FormSuccessMessage(message string) {
+	<div class="bg-success/20 text-base-950 border border-success/40 px-4 py-3 rounded text-center font-medium">
+		{ message }
+	</div>
+}
+
+// Error message partial
+templ FormErrorMessage(message string) {
+	<div class="bg-error/20 text-black border border-error/40 px-4 py-3 rounded text-center font-medium">
+		{ message }
+	</div>
+}
