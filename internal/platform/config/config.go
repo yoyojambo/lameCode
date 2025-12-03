@@ -42,7 +42,7 @@ var (
 // TODO: Maybe implement this as flagsets instead? This is getting ugly
 func LoadServerFlags() {
 	flag.StringVar(&db_URL, "db-url", DEFAULT_SQLITE_DB_FILE, db_file_usage)
-	flag.StringVar(&turso_auth, "token", "", auth_token_usage)
+	flag.StringVar(&turso_auth, "db-token", "", auth_token_usage)
 	flag.BoolVar(&create, "create-db", false, create_db_usage)
 	flag.StringVar(&envFile, "env", DEFAULT_DOT_ENV, env_file_usage)
 	flag.BoolVar(&debug, "debug", false, debug_usage)

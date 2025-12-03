@@ -20,7 +20,7 @@ go build -o lamecode-server ./cmd/server/
 Run the server with default options:
 
 #+begin_src shell
-./lamecode-server --create
+./lamecode-server --create-db
 #+end_src
 
 This creates a local ~database.db~ and applies the schema if needed.
@@ -29,14 +29,14 @@ This creates a local ~database.db~ and applies the schema if needed.
 Prints detailed logs while the server is running:
 
 #+begin_src shell
-./lamecode-server --create --debug
+./lamecode-server --create-db --debug
 #+end_src
 
 * Use a Remote Turso Database
 To connect to a remote Turso instance:
 
 #+begin_src shell
-./lamecode-server --create --remote --db-url "libsql://your-db.turso.io"
+./lamecode-server --create-db --remote --db-url "libsql://your-db.turso.io"
 #+end_src
 
 * Provide Auth Token for Turso (via env var)
@@ -44,7 +44,7 @@ Set the token securely before launching:
 
 #+begin_src shell
 export TURSO_AUTH=your_token_here
-./lamecode-server --create --remote --db-url "libsql://your-db.turso.io"
+./lamecode-server --create-db --remote --db-url "libsql://your-db.turso.io"
 #+end_src
 
 Use the flag only for testing (not recommended):
@@ -63,13 +63,13 @@ Lamecode currently works with wasmtime, wasmer, and iwasm. But if none is availa
 This downloads Wasmer if it's not available in your environment.
 
 * Use a Custom Environment File
-Configuration can be centralized in a `.env` file:
+Configuration can be centralized in a ~.env~ file:
 
 #+begin_src shell
 ./lamecode-server --env myconfig.env
 #+end_src
 
-** Sample ~myconfig.env~
+** Sample ~lamecode.env~
 #+begin_src dotenv
 DB_URL=libsql://your-db.turso.io
 TURSO_AUTH=your_token_here
@@ -79,8 +79,8 @@ DEBUG=true
 * Summary
 | Use Case         | Command Example                                |
 |------------------+------------------------------------------------|
-| Local DB         | ./lamecode-server --create                     |
-| Debug Mode       | ./lamecode-server --create --debug             |
+| Local DB         | ./lamecode-server --create-db                  |
+| Debug Mode       | ./lamecode-server --create-db --debug          |
 | Remote DB        | ./lamecode-server --remote --db "libsql://..." |
 | Auth Token (env) | export TURSO_AUTH=... && ./lamecode-server ... |
 | Install Wasmer   | ./lamecode-server --install-wasmer             |

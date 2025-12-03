@@ -13,16 +13,16 @@ local SQLite) database.
 - Compiles and runs code in Go, TinyGo, C, C++, and Rust
 - Executes code in WebAssembly using Wasmtime for isolation
 - Uses local compilation, no external APIs
-- Server-side evaluation, no exposed runtimes
+- Server-side evaluation, no external runtimes needed
 - Built with Go (Gin) + HTMX, no JS framework
 
 * Tech Stack
 
 - *Language*: Go
 - *Backend*: Gin
-- *Frontend*: HTMX + Go templates
+- *Frontend*: HTMX + Tailwind + Templ
 - *Database*: Turso or SQLite
-- *Execution sandbox*: WebAssembly via Wasmtime
+- *Execution sandbox*: WebAssembly (more coming soon)
 
 * Runtime Requirements
 
@@ -35,17 +35,19 @@ To build and run submissions locally, the following toolchains are expected in t
 
 * Roadmap
 
+- [X] Admin UI/actions (modify data through app)
+- [X] Add user authentication and problem progress tracking
 - [ ] Add time and memory limits per submission
 - [ ] Rate limiting and abuse prevention
-- [ ] Add user authentication and problem progress tracking
 - [ ] Add leaderboard and performance metrics
+- [ ] API for external judging workers (for custom deployments)
 - [ ] Language support: JavaScript, Python, Zig, Lua
 - [ ] Exposable API (endpoints offering both HTML or JSON)
-- [ ] Admin UI/actions (modify data through app)
 - [ ] Composable tests (create tests from code)
 - [ ] Multiple sandbox options (besides WASM)
 - [ ] Add my own sample of code problems
 
 * Status
 
-The project is in active development and not yet production-ready. Contributions and feedback are welcome.
+The project is in active development and not yet production-ready. Contributions and
+feedback are welcome.
