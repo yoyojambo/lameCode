@@ -119,7 +119,7 @@ func ProblemsContent(challengesView ChallengePage) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div id=\"main\" class=\"max-w-5xl mx-auto px-5 py-6\"><h3 class=\"text-2xl font-semibold text-base-50 text-center mb-6\">Most Popular Challenges</h3>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div id=\"main\" class=\"max-w-5xl mx-auto px-5 py-6\"><h3 class=\"w-full bg-base-700 border border-base-200 p-2 rounded-lg text-2xl font-semibold text-base-50 text-center mb-2\">Most Popular Challenges</h3>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -134,7 +134,7 @@ func ProblemsContent(challengesView ChallengePage) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " <div class=\"bg-base-800 border border-base-600 rounded-lg p-8 text-center\"><p class=\"text-base-200\">No challenges available yet.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " <div class=\"bg-base-700 border border-base-200 rounded-lg p-8 text-center\"><p class=\"text-base-200\">No challenges available yet.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -169,7 +169,7 @@ func ProblemsList(challengesView ChallengePage) templ.Component {
 			templ_7745c5c3_Var6 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div id=\"challenges\" class=\"bg-base-800 border border-base-600 rounded-lg p-5\"><div class=\"flex gap-2 mb-4\"><button")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div id=\"challenges\" class=\"bg-base-700 border border-base-800 rounded-lg p-5\"><div class=\"flex gap-2 mb-4\"><button")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -215,7 +215,7 @@ func ProblemsList(challengesView ChallengePage) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" hx-target=\"#challenges\" hx-swap=\"outerHTML\" class=\"bg-base-700 hover:bg-base-600 text-base-50 font-medium px-4 py-2 rounded border border-base-500 disabled:opacity-50 disabled:cursor-not-allowed\">Next &rarr;</button> <span class=\"ml-auto text-base-200 text-sm self-center\">Page ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" hx-target=\"#challenges\" hx-swap=\"outerHTML\" class=\"bg-base-700 hover:bg-base-600 text-base-50 font-medium px-4 py-2 rounded border border-base-500 disabled:opacity-50 disabled:cursor-not-allowed\">Next &rarr;</button> <span class=\"ml-auto text-base-50 text-sm self-center\">Page ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -228,7 +228,7 @@ func ProblemsList(challengesView ChallengePage) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</span></div><div class=\"overflow-x-auto\"><table class=\"w-full text-left\" hx-boost=\"true\" hx-target=\"#main\" hx-swap=\"outerHTML show:#navbar:top\"><thead><tr class=\"border-b-2 border-primary-700 bg-primary-900/30\"><th class=\"w-[60%] py-3 px-4 text-primary-100 font-semibold\">Challenge</th><th class=\"py-3 px-4 text-primary-100 font-semibold\">Difficulty</th><th class=\"py-3 px-4 text-primary-100 font-semibold\">Tests</th></tr></thead> <tbody>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</span></div><div class=\"overflow-x-auto\"><table class=\"w-full text-left\" hx-boost=\"true\" hx-target=\"#main\" hx-swap=\"outerHTML show:window:top\"><thead><tr class=\"border-b-2 border-primary-700 bg-primary-900/30\"><th class=\"w-[60%] py-3 px-4 text-primary-100 font-semibold\">Challenge</th><th class=\"py-3 px-4 text-primary-100 font-semibold\">Difficulty</th><th class=\"py-3 px-4 text-primary-100 font-semibold\">Tests</th></tr></thead> <tbody>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -309,63 +309,7 @@ func ProblemsList(challengesView ChallengePage) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</tbody></table></div>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		if challengesView.HasPrev || challengesView.HasNext {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<div class=\"flex gap-2 mt-4 pt-4 border-t border-base-700\"><button")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			if !challengesView.HasPrev {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, " disabled")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, " hx-get=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var13 string
-			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/problemlist?page=%d", challengesView.PrevPage))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `all_problems.templ`, Line: 133, Col: 74}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "\" hx-target=\"#challenges\" hx-swap=\"outerHTML\" class=\"bg-base-700 hover:bg-base-600 text-base-50 font-medium px-4 py-2 rounded border border-base-500 disabled:opacity-50 disabled:cursor-not-allowed\">&larr; Back</button> <button")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			if !challengesView.HasNext {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, " disabled")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, " hx-get=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var14 string
-			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/problemlist?page=%d", challengesView.NextPage))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `all_problems.templ`, Line: 145, Col: 74}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\" hx-target=\"#challenges\" hx-swap=\"outerHTML\" class=\"bg-base-700 hover:bg-base-600 text-base-50 font-medium px-4 py-2 rounded border border-base-500 disabled:opacity-50 disabled:cursor-not-allowed\">Next &rarr;</button></div>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</tbody></table></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

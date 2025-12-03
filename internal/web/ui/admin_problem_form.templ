@@ -21,10 +21,10 @@ templ AdminProblemFormContent(view AdminProblemFormView) {
 	<title>{problemFormTitle(view)}</title>
 	<div id="main" class="max-w-4xl mx-auto px-5 py-6 space-y-6">
 		<div class="flex items-center gap-4">
-			<a hx-boost="true" hx-swap="outerHTML show:#navbar:top" hx-target="#main" href="/admin/problems" class="text-base-300 hover:text-base-500">&larr; Back to Problems</a>
+			<a hx-boost="true" hx-swap="outerHTML show:#navbar:top" hx-target="#main" href="/admin/problems" class="text-base-300 hover:text-base-500 hover:underline">&larr; Back to Problems</a>
 			<h2 class="text-2xl font-bold text-base-700">
 				if view.Problem != nil {
-					Edit Problem: <span class="text-primary-700">{ view.Problem.Title }</span>
+					Edit Problem: <a hx-boost="true" hx-swap="outerHTML show:#navbar:top" hx-target="#main" href={ fmt.Sprint("/problem/", view.Problem.ID) } class="text-primary-700 hover:text-accent-700">{ view.Problem.Title }</a>
 				} else {
 					Create New Problem
 				}

@@ -19,7 +19,7 @@ templ ProblemsContent(challengesView ChallengePage) {
 		<title>{ fmt.Sprint("Home - Page ", challengesView.CurrentPage) }</title>
 	}
 	<div id="main" class="max-w-5xl mx-auto px-5 py-6">
-		<h3 class="text-2xl font-semibold text-base-50 text-center mb-6">Most Popular Challenges</h3>
+		<h3 class="w-full bg-base-700 border border-base-200 p-2 rounded-lg text-2xl font-semibold text-base-50 text-center mb-2">Most Popular Challenges</h3>
 		
 		if len(challengesView.Challenges) > 0 {
 			@ProblemsList(challengesView)
@@ -28,7 +28,7 @@ templ ProblemsContent(challengesView ChallengePage) {
 			<div id="challenges" hx-get="/problemlist?page=1" hx-trigger="load" hx-swap="outerHTML"></div>
 		} else {
 			// Empty state
-			<div class="bg-base-800 border border-base-600 rounded-lg p-8 text-center">
+			<div class="bg-base-700 border border-base-200 rounded-lg p-8 text-center">
 				<p class="text-base-200">No challenges available yet.</p>
 			</div>
 		}
@@ -37,7 +37,7 @@ templ ProblemsContent(challengesView ChallengePage) {
 
 // Challenge list with pagination (swappable via HTMX)
 templ ProblemsList(challengesView ChallengePage) {
-	<div id="challenges" class="bg-base-800 border border-base-600 rounded-lg p-5">
+	<div id="challenges" class="bg-base-700 border border-base-800 rounded-lg p-5">
 		// Pagination controls - top
 		<div class="flex gap-2 mb-4">
 			<button
@@ -64,7 +64,7 @@ templ ProblemsList(challengesView ChallengePage) {
 				Next &rarr;
 			</button>
 			
-			<span class="ml-auto text-base-200 text-sm self-center">
+			<span class="ml-auto text-base-50 text-sm self-center">
 				Page { fmt.Sprint(challengesView.CurrentPage) }
 			</span>
 		</div>
@@ -75,7 +75,7 @@ templ ProblemsList(challengesView ChallengePage) {
 				class="w-full text-left"
 				hx-boost="true"
 				hx-target="#main"
-				hx-swap="outerHTML show:#navbar:top"
+				hx-swap="outerHTML show:window:top"
 			>
 				<thead>
 					<tr class="border-b-2 border-primary-700 bg-primary-900/30">
@@ -122,34 +122,5 @@ templ ProblemsList(challengesView ChallengePage) {
 				</tbody>
 			</table>
 		</div>
-
-		// Pagination controls - bottom
-		if challengesView.HasPrev || challengesView.HasNext {
-			<div class="flex gap-2 mt-4 pt-4 border-t border-base-700">
-				<button
-					if !challengesView.HasPrev {
-						disabled
-					}
-					hx-get={ fmt.Sprintf("/problemlist?page=%d", challengesView.PrevPage) }
-					hx-target="#challenges"
-					hx-swap="outerHTML"
-					class="bg-base-700 hover:bg-base-600 text-base-50 font-medium px-4 py-2 rounded border border-base-500 disabled:opacity-50 disabled:cursor-not-allowed"
-				>
-					&larr; Back
-				</button>
-				
-				<button
-					if !challengesView.HasNext {
-						disabled
-					}
-					hx-get={ fmt.Sprintf("/problemlist?page=%d", challengesView.NextPage) }
-					hx-target="#challenges"
-					hx-swap="outerHTML"
-					class="bg-base-700 hover:bg-base-600 text-base-50 font-medium px-4 py-2 rounded border border-base-500 disabled:opacity-50 disabled:cursor-not-allowed"
-				>
-					Next &rarr;
-				</button>
-			</div>
-		}
 	</div>
 }
