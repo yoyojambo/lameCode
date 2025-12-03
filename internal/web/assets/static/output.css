@@ -869,6 +869,9 @@
   .p-8 {
     padding: calc(var(--spacing) * 8);
   }
+  .p-9 {
+    padding: calc(var(--spacing) * 9);
+  }
   .px-1 {
     padding-inline: calc(var(--spacing) * 1);
   }

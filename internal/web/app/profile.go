@@ -2,10 +2,12 @@ package app
 
 import (
 	"fmt"
+	"errors"
+	"net/http"
+	"database/sql"
+
 	"lameCode/internal/platform/data"
 	"lameCode/internal/web/ui"
-	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,7 +29,7 @@ func userProfilePageFunc(ctx *gin.Context) {
 	// Fetch all data directly
 	userStats, err := repo.GetUserStats(reqCtx, username)
 	if err != nil {
-		if strings.Contains(err.Error(), "no rows") {
+		if errors.Is(err, sql.ErrNoRows) {
 			// TODO: render a proper 404 templ page
 			ctx.String(http.StatusNotFound, "User '%s' not found", username)
 			return

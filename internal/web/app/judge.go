@@ -2,6 +2,7 @@ package app
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"lameCode/internal/platform/data"
 	"lameCode/internal/platform/judge"
@@ -16,8 +17,8 @@ import (
 
 func LoadJudgeHandlers(r *gin.RouterGroup) {
 	g := r.Group("/judge")
-	g.POST("/test/:id", submissionHandlers(true))
-	g.POST("/submit/:id", session.MandatoryAuthRoute("/login"), submissionHandlers(false)) // TODO: Break out tests behaviour and actually save submissions with submit
+	g.POST("/test/:id", evalSolutionHandlers(true))
+	g.POST("/submit/:id", session.MandatoryAuthRoute("/login"), evalSolutionHandlers(false)) // TODO: Break out tests behaviour and actually save submissions with submit
 }
 
 // printSubmission is just for testing the frontend
@@ -33,7 +34,7 @@ func printSubmission(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, submission)
 }
 
-func submissionHandlers(just_test bool) gin.HandlerFunc {
+func evalSolutionHandlers(just_test bool) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		challengeId, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 		if err != nil {
@@ -53,9 +54,18 @@ func submissionHandlers(just_test bool) gin.HandlerFunc {
 		q := data.Repository()
 		tests, err := q.GetTestsForChallenge(ctx.Request.Context(), challengeId)
 		if err != nil {
-			ctx.AbortWithError(http.StatusInternalServerError,
-				fmt.Errorf("error getting tests for challenge in test: %w", err))
+			// Apparently does not work? maybe because :many sqlc hint?
+			if errors.Is(err, sql.ErrNoRows) {
+				ctx.String(http.StatusOK, "No tests for challenge...")
+			} else {
+				ctx.AbortWithError(http.StatusInternalServerError,
+					fmt.Errorf("error getting tests for challenge in test: %w", err))
+			}
+			return
+		}
 
+		if len(tests) == 0 {
+			ctx.String(http.StatusOK, "<b>No tests for challenge...<b>")
 			return
 		}
 

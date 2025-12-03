@@ -60,17 +60,12 @@ func problemFunc(ctx *gin.Context) {
 	}
 
 	p, err := data.Repository().GetChallenge(ctx, problemId)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		ctx.AbortWithError(500, err)
-		return
-	}
-
-	// TODO: Make 404 not found page.
-
-	// wrapped the literal in () because otherwise it thinks {} is the
-	// beginning of an expression
-	if p == (data.Challenge{}) { // compare to 0-value in case of not found
-		ctx.AbortWithStatus(404)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) { // TODO: Make 404 not found page.
+			ctx.String(http.StatusNotFound, fmt.Sprintf("Problem with id %d not found", problemId))
+		} else {
+			ctx.AbortWithError(500, err)
+		}
 		return
 	}
 
