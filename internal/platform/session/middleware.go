@@ -11,14 +11,14 @@ import (
 
 const (
 	SessionContextKey = "session"
-	AccessContextKey = "session-access"
+	AccessContextKey  = "session-access"
 	SessionCookieName = "session"
 )
 
 var (
 	ErrSessionCookieNotFound = errors.New("session jwt cookie not found")
-	ErrAuthRequired = errors.New("authentication required")
-	ErrAdminRequired = errors.New("admin authorization required")
+	ErrAuthRequired          = errors.New("authentication required")
+	ErrAdminRequired         = errors.New("admin authorization required")
 )
 
 // Asserts that there the session cookie exists and contains a valid
@@ -59,15 +59,22 @@ func MandatoryAuthRoute(redirect string) gin.HandlerFunc {
 
 		// token not found or invalid
 		if tok == nil {
-			ctx.Redirect(http.StatusFound, redirect)
-			ctx.Abort()
+			// To prevent HTMX from swapping from redirect
+			if ctx.GetHeader("HX-Request") == "true" {
+				ctx.Header("HX-Redirect", redirect)
+				ctx.Header("HX-Retarget", "body")
+				ctx.AbortWithStatus(http.StatusOK)
+			} else {
+				ctx.Redirect(http.StatusFound, redirect)
+				ctx.Abort()
+			}
 			return
 		}
 
 		// Set both the token and level of access in context
 		ctx.Set(SessionContextKey, tok)
 		ctx.Set(AccessContextKey, access)
-		
+
 		// Next handlers in chain
 	}
 }
