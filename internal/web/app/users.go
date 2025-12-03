@@ -184,5 +184,5 @@ func registerUserFunc(ctx *gin.Context) {
 
 	// Redirect to homepage
 	ctx.Header("HX-Redirect", "/")
-	setSessionCookieFromToken(ctx, newToken, 999999)
+	setSessionCookieFromToken(ctx, newToken, 99999)
 }

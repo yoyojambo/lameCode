@@ -13,7 +13,7 @@ tmp_dir = "tmp"
   exclude_unchanged = true
   follow_symlink = false
   include_dir = ["cmd/server", "internal"]
-  include_ext = ["go", "templ", "html", "sql", "css"]
+  include_ext = ["go", "templ", "sql", "css"]
   include_file = []
   kill_delay = "0s"
   log = "build-errors.log"
@@ -51,5 +51,5 @@ tmp_dir = "tmp"
   proxy_port = 5000
 
 [screen]
-  clear_on_rebuild = false
+  clear_on_rebuild = true
   keep_scroll = true

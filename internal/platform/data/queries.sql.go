@@ -954,6 +954,38 @@ func (q *Queries) NewSolution(ctx context.Context, arg NewSolutionParams) (int64
 	return id, err
 }
 
+const newSolutionByUsername = `-- name: NewSolutionByUsername :one
+INSERT INTO solutions (user_id, challenge_id, code, language, status, runtime_info)
+VALUES (
+  (SELECT id FROM users WHERE username = ?),
+  ?, ?, ?, ?, ?
+)
+RETURNING id
+`
+
+type NewSolutionByUsernameParams struct {
+	Username    string         `json:"username"`
+	ChallengeID int64          `json:"challenge_id"`
+	Code        string         `json:"code"`
+	Language    string         `json:"language"`
+	Status      string         `json:"status"`
+	RuntimeInfo sql.NullString `json:"runtime_info"`
+}
+
+func (q *Queries) NewSolutionByUsername(ctx context.Context, arg NewSolutionByUsernameParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, newSolutionByUsername,
+		arg.Username,
+		arg.ChallengeID,
+		arg.Code,
+		arg.Language,
+		arg.Status,
+		arg.RuntimeInfo,
+	)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
 const newUser = `-- name: NewUser :one
 INSERT INTO users (username, password_hash) VALUES (?, ?) RETURNING id
 `

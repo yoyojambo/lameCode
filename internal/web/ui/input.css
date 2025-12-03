@@ -59,3 +59,16 @@
   --color-warning: #eab308;
   --color-error: #ef4444;
 }
+
+#problem-description table {
+  @apply w-full border-collapse border border-base-300;
+}
+
+#problem-description th,
+#problem-description td {
+  @apply border border-base-300 px-3 py-2;
+}
+
+#problem-description th {
+  @apply text-base-700 bg-base-200 font-semibold;
+}

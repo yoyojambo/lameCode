@@ -77,7 +77,7 @@ func problemFunc(ctx *gin.Context) {
 	tryBetterTitle(&p)
 
 	if ctx.GetHeader("HX-Request") == "true" {
-		RenderTemplOK(ctx, ui.ProblemEditor(p, judge.LanguageOptions()))
+		RenderTemplOK(ctx, ui.ProblemEditor(extractUserData(ctx), p, judge.LanguageOptions()))
 	} else {
 		RenderTemplOK(ctx, ui.ProblemPage(extractUserData(ctx), p, judge.LanguageOptions()))
 	}

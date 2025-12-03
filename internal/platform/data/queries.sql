@@ -95,6 +95,14 @@ INSERT INTO solutions (user_id, challenge_id, code, language, status, runtime_in
 VALUES (?, ?, ?, ?, ?, ?)
 RETURNING id;
 
+-- name: NewSolutionByUsername :one
+INSERT INTO solutions (user_id, challenge_id, code, language, status, runtime_info)
+VALUES (
+  (SELECT id FROM users WHERE username = ?),
+  ?, ?, ?, ?, ?
+)
+RETURNING id;
+
 -- name: GetSolutionsForChallenge :many
 SELECT * FROM solutions
 WHERE challenge_id = ?

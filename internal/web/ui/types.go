@@ -41,6 +41,12 @@ type ChallengePage struct {
 	CurrentPage int64
 }
 
+// Code judging types exchanged
+type Submission struct {
+	Language string `form:"language" binding:"required"`
+	Code     string `form:"code" binding:"required"`
+}
+
 // Admin views - thin wrappers around repo types
 type AdminDashboardView struct {
 	data.GetAdminStatsRow

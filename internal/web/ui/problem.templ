@@ -24,7 +24,7 @@ type ApiChallenge struct {
 // submission/test buttons and results.
 templ ProblemPage(user UserData, challenge data.Challenge, languages []judge.LanguageOption) {
 	@Base(challenge.Title, user) {
-		@ProblemEditor(challenge, languages)
+		@ProblemEditor(user, challenge, languages)
 	}
 }
 
@@ -47,16 +47,18 @@ func mdToHTML(md string) string {
 
 // ProblemEditor is the partial within ProblemPage, including the editor,
 // submission/test buttons and results.
-templ ProblemEditor(challenge data.Challenge, languages []judge.LanguageOption) {
+templ ProblemEditor(user UserData, challenge data.Challenge, languages []judge.LanguageOption) {
 	<title>{ challenge.Title }</title>
 	<div id="main" class="max-w-6xl mx-auto px-5 py-6">
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 			
 			// Left Column
 			<div class="bg-base-800 border border-base-600 rounded-lg p-5">
-				<h3 class="text-xl font-semibold text-base-50 mb-2">{ challenge.Title }</h3>
 				
-				switch challenge.Difficulty {
+				<h3 class="text-xl font-semibold text-base-50 mb-2">{ challenge.Title }</h3>
+				<div class="flex justify-start items-center space-x-2 mt-4">
+				
+					switch challenge.Difficulty {
 					case 1:
 						<span class="inline-block bg-success text-white text-sm px-2 py-1 rounded mb-2">Easy</span>
 					case 2:
@@ -65,11 +67,18 @@ templ ProblemEditor(challenge data.Challenge, languages []judge.LanguageOption) 
 						<span class="inline-block bg-error text-white text-sm px-2 py-1 rounded mb-2">Hard</span>
 					default:
 						<span class="inline-block bg-base-500 text-base-100 text-sm px-2 py-1 rounded mb-2">Not tagged</span>
-				}
+					}
+					
+					if user.IsAdmin {
+						<a class="bg-accent-600 hover:bg-accent-500 text-white font-medium px-4 py-1.5 rounded" href={fmt.Sprint("/admin/problems/", challenge.ID, "/edit")}> Edit</a>
+					}
+					
+				</div>
 
 				<div id="problem-description" class="prose prose-invert max-w-none mt-4 text-base-100">
 					@templ.Raw(mdToHTML(challenge.Description))
 				</div>
+
 			</div>
 
 			// Right Column
@@ -109,7 +118,7 @@ templ ProblemEditor(challenge data.Challenge, languages []judge.LanguageOption) 
 						class="bg-primary-600 hover:bg-primary-500 text-white font-medium px-4 py-1.5 rounded"
 						hx-post={ fmt.Sprintf("/judge/submit/%d", challenge.ID) }
 						hx-include="#code-input,#language-select"
-						hx-target="#submission-modal .modal-content p"
+						hx-target="#results"
 						hx-swap="innerHTML"
 						hx-indicator=".spinner"
 						type="button"
@@ -122,15 +131,6 @@ templ ProblemEditor(challenge data.Challenge, languages []judge.LanguageOption) 
 				<div id="results" class="mt-4 h-48 border border-base-600 bg-base-900 overflow-auto rounded p-3 text-sm text-base-200">
 					No results yet.
 				</div>
-			</div>
-		</div>
-
-		// Modal
-		<div id="submission-modal" class="hidden fixed inset-0 z-50 bg-black/60 flex items-start justify-center pt-24">
-			<div class="modal-content bg-base-800 rounded-lg p-5 w-96 border border-base-600">
-				<span class="float-right cursor-pointer text-lg font-bold text-base-300 hover:text-base-100"
-					onclick="document.getElementById('submission-modal').style.display='none'">&times;</span>
-				<p class="text-base-100">Your code has been submitted. We'll let you know the results soon!</p>
 			</div>
 		</div>
 	</div>
@@ -147,7 +147,7 @@ func countPasses(results []judge.Result) int {
 	return count
 }
 
-templ ResultTable(results []judge.Result) {
+templ ResultTable(submission Submission, results []judge.Result) {
 	{{
 		passes := countPasses(results)
 		result_class := "success"
@@ -155,6 +155,11 @@ templ ResultTable(results []judge.Result) {
 			result_class = "error"
 		}
 	}}
+	if passes != len(results) {
+		<h2>Solution fails.</h2>
+	} else {
+		<h2>Solution passes!</h2>
+	}
 	<span class={"font-bold text-" + result_class}>{passes}/{len(results)} tests passed.</span>
 	<table class="w-full mt-4 text-left text-sm">
 		<thead>

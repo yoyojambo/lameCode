@@ -350,7 +350,9 @@ func RunMultipleTests(code, lang string, challenges []data.ChallengeTest) ([]Res
 				}
 				if got_b[j] != expected_b[j] {
 					mismatches++
-					l.Printf("Mismatch byte #%d in test #%d\nGot %q expected %q\n",
+					// TODO: Better logging of judge processes (this is noisy)
+					// maybe a dedicated judging log file?
+					l.Printf("Mismatch byte #%d in test #%d: Got %q expected %q\n",
 						j, i, got_b[j], expected_b[j])
 				}
 			}
